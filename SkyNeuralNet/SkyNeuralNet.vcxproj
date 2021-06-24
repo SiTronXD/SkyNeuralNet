@@ -19,7 +19,23 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <CudaCompile Include="Main.cu" />
+    <CudaCompile Include="Main.cu">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </CudaCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Layer.cpp" />
+    <ClCompile Include="Main.cpp" />
+    <ClCompile Include="NeuralNet.cpp" />
+    <ClCompile Include="Neuron.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Layer.h" />
+    <ClInclude Include="NeuralNet.h" />
+    <ClInclude Include="Neuron.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
