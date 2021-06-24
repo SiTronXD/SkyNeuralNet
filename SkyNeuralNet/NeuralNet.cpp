@@ -1,6 +1,6 @@
 #include "NeuralNet.h"
 
-NeuralNet::NeuralNet(std::vector<unsigned int> neuronPerLayer)
+NeuralNet::NeuralNet(const std::vector<unsigned int>& neuronPerLayer)
 {
 	for (int i = 0; i < neuronPerLayer.size(); ++i)
 	{
@@ -12,14 +12,13 @@ NeuralNet::NeuralNet(std::vector<unsigned int> neuronPerLayer)
 		// Get previous layer, if it exists
 		Layer* previousLayer = nullptr;
 		if (i > 0)
-			previousLayer = &this->layers[i - 1];
+			previousLayer = this->layers[i - 1];
 
 		// Add layer
 		this->layers.push_back(
-			Layer(
+			new Layer(
 				neuronPerLayer[i], 
 				numOutputWeights, 
-				numOutputWeights != 0, 
 				previousLayer
 			)
 		);
@@ -28,4 +27,40 @@ NeuralNet::NeuralNet(std::vector<unsigned int> neuronPerLayer)
 
 NeuralNet::~NeuralNet()
 {
+	for (int i = 0; i < this->layers.size(); ++i)
+		delete this->layers[i];
+	this->layers.clear();
+}
+
+void NeuralNet::forwardProp(const std::vector<double>& inputValues)
+{
+	// Manually set output values in the first layer
+	this->layers[0]->setAllOutputs(inputValues);
+
+	// TODO: Rewrite this for the gpu later
+	for (int i = 1; i < this->layers.size(); ++i)
+	{
+		this->layers[i]->calcOutputs();
+	}
+}
+
+void NeuralNet::getOutputs(std::vector<double>& outputValues)
+{
+	// Get all neurons
+	std::vector<Neuron*>& outputNeurons = this->layers.back()->getNeurons();
+
+	// Save output values in given vector
+	for (int i = 0; i < outputNeurons.size(); ++i)
+		outputValues.push_back(outputNeurons[i]->getOutputValue());
+}
+
+void NeuralNet::setWeight(unsigned int layerIndex, unsigned int neuronIndex,
+	const std::vector<double>& newWeights)
+{
+	Neuron* currentNeuron = this->layers[layerIndex]->getNeurons()[neuronIndex];
+
+	for (int i = 0; i < currentNeuron->getWeights().size(); ++i)
+	{
+		currentNeuron->getWeights()[i] = newWeights[i];
+	}
 }

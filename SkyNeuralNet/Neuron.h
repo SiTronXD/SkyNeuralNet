@@ -13,5 +13,10 @@ public:
 	Neuron(double initialOutputValue, unsigned int numOutputWeights);
 	~Neuron();
 
+	void setOutputValue(double outputValue);
 
+	double getOutputValue() const;
+	double getOutputWeight(int index) const;
+
+	std::vector<double>& getWeights();
 };
