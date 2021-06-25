@@ -17,8 +17,5 @@ public:
 	void setAllOutputs(std::vector<double> outputValues);
 	void calcOutputs();
 
-	double activationFunction(double x) const;
-	double activationFunctionDerivative(double x) const;
-
 	std::vector<Neuron*>& getNeurons();
 };

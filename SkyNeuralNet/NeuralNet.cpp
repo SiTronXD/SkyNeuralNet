@@ -1,4 +1,53 @@
 #include "NeuralNet.h"
+#include <cmath>
+
+void NeuralNet::calcOutputLayerGradients(const std::vector<double>& expectedValues)
+{
+	std::vector<Neuron*>& outputNeurons = this->layers.back()->getNeurons();
+
+	// Calculate gradients for all neurons, except bias neuron
+	for (int i = 0; i < outputNeurons.size() - 1; ++i)
+	{
+		outputNeurons[i]->calcOutputGradient(expectedValues[i]);
+	}
+}
+
+void NeuralNet::calcHiddenLayerGradients(const std::vector<double>& expectedValues)
+{
+	// Go through all hidden layers, back to front
+	for (int i = this->layers.size() - 2; i > 0; --i)
+	{
+		Layer* currentLayer = this->layers[i];
+		Layer* nextLayer = this->layers[i + 1];
+
+		std::vector<Neuron*>& layerNeurons = currentLayer->getNeurons();
+
+		// Go through all neurons and calculate gradients
+		for (int j = 0; j < layerNeurons.size(); ++j)
+		{
+			layerNeurons[j]->calcHiddenGradient(nextLayer->getNeurons());
+		}
+	}
+}
+
+void NeuralNet::updateWeights()
+{
+	// Go through all layers, except input layer,
+	// and update all weights
+	for (int i = this->layers.size() - 1; i > 0; --i)
+	{
+		Layer* currentLayer = this->layers[i];
+		Layer* previousLayer = this->layers[i - 1];
+
+		std::vector<Neuron*>& layerNeurons = currentLayer->getNeurons();
+
+		// Go through all neurons and update weights
+		for (int j = 0; j < layerNeurons.size() - 1; ++j)
+		{
+			layerNeurons[j]->updateWeights(previousLayer);
+		}
+	}
+}
 
 NeuralNet::NeuralNet(const std::vector<unsigned int>& neuronPerLayer)
 {
@@ -44,6 +93,18 @@ void NeuralNet::forwardProp(const std::vector<double>& inputValues)
 	}
 }
 
+void NeuralNet::backProp(const std::vector<double>& expectedValues)
+{
+	// Calculate gradients in output layer
+	this->calcOutputLayerGradients(expectedValues);
+
+	// Calculate gradients in hidden layers
+	this->calcHiddenLayerGradients(expectedValues);
+
+	// Finally update weights
+	this->updateWeights();
+}
+
 void NeuralNet::getOutputs(std::vector<double>& outputValues)
 {
 	// Get all neurons
@@ -63,4 +124,22 @@ void NeuralNet::setWeight(unsigned int layerIndex, unsigned int neuronIndex,
 	{
 		currentNeuron->getWeights()[i] = newWeights[i];
 	}
+}
+
+double NeuralNet::getError(const std::vector<double>& expectedValues) const
+{
+	// Calculate error (using "Root Mean Square Error")
+	double error = 0.0;
+	std::vector<Neuron*>& outputNeurons = this->layers.back()->getNeurons();
+
+	// Accumulate errors
+	for (int i = 0; i < outputNeurons.size() - 1; ++i)
+	{
+		double deltaError = expectedValues[i] - outputNeurons[i]->getOutputValue();
+
+		error += deltaError * deltaError;
+	}
+	error = std::sqrt(error / (outputNeurons.size() - 1));
+
+	return error;
 }

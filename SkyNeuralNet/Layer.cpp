@@ -1,5 +1,5 @@
 #include "Layer.h"
-#include <cmath>
+#include "ActivationFunction.h"
 
 Layer::Layer(unsigned int numNeurons, unsigned int numOutputWeights,
 	Layer* _previousLayer)
@@ -8,14 +8,15 @@ Layer::Layer(unsigned int numNeurons, unsigned int numOutputWeights,
 	// Add neurons + 1 bias neuron
 	for (int i = 0; i < numNeurons + 1; ++i)
 	{
-		double initialOutputValue = (double) rand() / RAND_MAX;
+		double initialOutputValue = 0.0;
 
 		// Bias neuron
 		if (i == numNeurons)
 			initialOutputValue = 1.0;
 
 		// Add neuron
-		this->neurons.push_back(new Neuron(initialOutputValue, numOutputWeights));
+		int newNeuronIndex = this->neurons.size();
+		this->neurons.push_back(new Neuron(initialOutputValue, numOutputWeights, newNeuronIndex));
 	}
 }
 
@@ -57,20 +58,10 @@ void Layer::calcOutputs()
 				prevNeuron->getOutputWeight(i);
 		}
 
-		result = this->activationFunction(result);
+		result = ActivationFunction::function(result);
 
 		this->neurons[i]->setOutputValue(result);
 	}
-}
-
-double Layer::activationFunction(double x) const
-{
-	return std::tanh(x);
-}
-
-double Layer::activationFunctionDerivative(double x) const
-{
-	return 1.0 - (std::tanh(x) * std::tanh(x));
 }
 
 std::vector<Neuron*>& Layer::getNeurons()
