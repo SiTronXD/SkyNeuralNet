@@ -14,10 +14,8 @@ double Neuron::sumWeightGradients(const std::vector<Neuron*>& nextLayerNeurons) 
 {
 	double sum = 0.0;
 
-	for (int i = 0; i < nextLayerNeurons.size() - 1; ++i)
-	{
+	for (int i = 0; i < this->outputWeights.size(); ++i)
 		sum += this->outputWeights[i] * nextLayerNeurons[i]->getGradient();
-	}
 
 	return sum;
 }
@@ -34,9 +32,7 @@ Neuron::Neuron(double initialOutputValue, unsigned int numOutputWeights,
 	}
 }
 
-Neuron::~Neuron()
-{
-}
+Neuron::~Neuron() { }
 
 void Neuron::calcHiddenGradient(const std::vector<Neuron*>& nextLayerNeurons)
 {
@@ -57,49 +53,29 @@ void Neuron::setOutputValue(double outputValue)
 	this->outputValue = outputValue;
 }
 
-void Neuron::updateWeights(Layer* previousLayer)
+void Neuron::updateWeights(Layer* nextLayer)
 {
-	std::vector<Neuron*>& prevNeurons = previousLayer->getNeurons();
+	std::vector<Neuron*>& nextNeurons = nextLayer->getNeurons();
 
-	// Go through the neurons of the previous layer
-	for (int i = 0; i < prevNeurons.size(); ++i)
+	// Go through and update all weights
+	for (int i = 0; i < this->outputWeights.size(); ++i)
 	{
-		Neuron* currentNeuron = prevNeurons[i];
+		double oldDeltaWeight = this->outputDeltaWeights[i];
 
-		double oldDeltaWeight = currentNeuron->getDeltaWeights()[this->myIndex];
-
-		double newDeltaWeight = 
+		double newDeltaWeight =
 			// Individual input, magnified by the gradient and train rate:
-			this->ETA * currentNeuron->getOutputValue() * this->gradient + 
+			this->ETA * this->outputValue * nextNeurons[i]->getGradient() +
 			// Also add momentum: a fraction of the previous delta weight
 			this->ALPHA * oldDeltaWeight;
 
-		currentNeuron->getDeltaWeights()[this->myIndex] = newDeltaWeight;
-		currentNeuron->getWeights()[this->myIndex] += newDeltaWeight;
+		this->outputDeltaWeights[i] = newDeltaWeight;
+		this->outputWeights[i] += newDeltaWeight;
 	}
 }
 
-double Neuron::getOutputValue() const
-{
-	return this->outputValue;
-}
+double Neuron::getOutputValue() const { return this->outputValue; }
+double Neuron::getOutputWeight(int index) const { return this->outputWeights[index]; }
+double Neuron::getGradient() const { return this->gradient; }
 
-double Neuron::getOutputWeight(int index) const
-{
-	return this->outputWeights[index];
-}
-
-double Neuron::getGradient() const
-{
-	return this->gradient;
-}
-
-std::vector<double>& Neuron::getWeights()
-{
-	return this->outputWeights;
-}
-
-std::vector<double>& Neuron::getDeltaWeights()
-{
-	return this->outputDeltaWeights;
-}
+std::vector<double>& Neuron::getWeights() { return this->outputWeights; }
+std::vector<double>& Neuron::getDeltaWeights() { return this->outputDeltaWeights; }

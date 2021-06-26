@@ -27,6 +27,7 @@ Layer::~Layer()
 	this->neurons.clear();
 }
 
+// Sets output values for the input layer
 void Layer::setAllOutputs(std::vector<double> outputValues)
 {
 	// Make sure the sizes are correct
@@ -40,10 +41,10 @@ void Layer::setAllOutputs(std::vector<double> outputValues)
 	}
 }
 
+// Calculate outputs when executing forward propagation
 void Layer::calcOutputs()
 {
-	// Calcultae outputs for each neuron,
-	// except for the bias
+	// Go through each neuron, except for the bias
 	for (int i = 0; i < this->neurons.size() - 1; ++i)
 	{
 		double result = 0.0;
@@ -64,7 +65,25 @@ void Layer::calcOutputs()
 	}
 }
 
-std::vector<Neuron*>& Layer::getNeurons()
+void Layer::calcHiddenNeuronGradients(Layer* nextLayer)
 {
-	return this->neurons;
+	// Go through all neurons and calculate gradients
+	for (int i = 0; i < this->neurons.size(); ++i)
+		this->neurons[i]->calcHiddenGradient(nextLayer->getNeurons());
 }
+
+void Layer::calcOutputNeuronGradients(const std::vector<double>& expectedValues)
+{
+	// Calculate gradients for all output neurons, except bias neuron
+	for (int i = 0; i < this->neurons.size() - 1; ++i)
+		this->neurons[i]->calcOutputGradient(expectedValues[i]);
+}
+
+void Layer::updateAllWeights(Layer* nextLayer)
+{
+	// Go through all neurons and update all weights
+	for (int i = 0; i < this->neurons.size(); ++i)
+		this->neurons[i]->updateWeights(nextLayer);
+}
+
+std::vector<Neuron*>& Layer::getNeurons() { return this->neurons; }

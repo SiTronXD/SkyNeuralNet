@@ -16,6 +16,9 @@ public:
 
 	void setAllOutputs(std::vector<double> outputValues);
 	void calcOutputs();
+	void calcHiddenNeuronGradients(Layer* nextLayer);
+	void calcOutputNeuronGradients(const std::vector<double>& expectedValues);
+	void updateAllWeights(Layer* nextLayer);
 
 	std::vector<Neuron*>& getNeurons();
 };

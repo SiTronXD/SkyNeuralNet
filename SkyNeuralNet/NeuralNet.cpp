@@ -3,13 +3,8 @@
 
 void NeuralNet::calcOutputLayerGradients(const std::vector<double>& expectedValues)
 {
-	std::vector<Neuron*>& outputNeurons = this->layers.back()->getNeurons();
-
-	// Calculate gradients for all neurons, except bias neuron
-	for (int i = 0; i < outputNeurons.size() - 1; ++i)
-	{
-		outputNeurons[i]->calcOutputGradient(expectedValues[i]);
-	}
+	// Output layer
+	this->layers.back()->calcOutputNeuronGradients(expectedValues);
 }
 
 void NeuralNet::calcHiddenLayerGradients(const std::vector<double>& expectedValues)
@@ -20,32 +15,20 @@ void NeuralNet::calcHiddenLayerGradients(const std::vector<double>& expectedValu
 		Layer* currentLayer = this->layers[i];
 		Layer* nextLayer = this->layers[i + 1];
 
-		std::vector<Neuron*>& layerNeurons = currentLayer->getNeurons();
-
-		// Go through all neurons and calculate gradients
-		for (int j = 0; j < layerNeurons.size(); ++j)
-		{
-			layerNeurons[j]->calcHiddenGradient(nextLayer->getNeurons());
-		}
+		currentLayer->calcHiddenNeuronGradients(nextLayer);
 	}
 }
 
 void NeuralNet::updateWeights()
 {
-	// Go through all layers, except input layer,
+	// Go through all layers, except output layer,
 	// and update all weights
-	for (int i = this->layers.size() - 1; i > 0; --i)
+	for (int i = this->layers.size() - 2; i >= 0; --i)
 	{
 		Layer* currentLayer = this->layers[i];
-		Layer* previousLayer = this->layers[i - 1];
+		Layer* nextLayer = this->layers[i + 1];
 
-		std::vector<Neuron*>& layerNeurons = currentLayer->getNeurons();
-
-		// Go through all neurons and update weights
-		for (int j = 0; j < layerNeurons.size() - 1; ++j)
-		{
-			layerNeurons[j]->updateWeights(previousLayer);
-		}
+		currentLayer->updateAllWeights(nextLayer);
 	}
 }
 
@@ -83,7 +66,7 @@ NeuralNet::~NeuralNet()
 
 void NeuralNet::forwardProp(const std::vector<double>& inputValues)
 {
-	// Manually set output values in the first layer
+	// Manually set output values in the input layer
 	this->layers[0]->setAllOutputs(inputValues);
 
 	// TODO: Rewrite this for the gpu later
@@ -115,15 +98,14 @@ void NeuralNet::getOutputs(std::vector<double>& outputValues)
 		outputValues.push_back(outputNeurons[i]->getOutputValue());
 }
 
+// Set individual weights, from a predefined neural network
 void NeuralNet::setWeight(unsigned int layerIndex, unsigned int neuronIndex,
 	const std::vector<double>& newWeights)
 {
 	Neuron* currentNeuron = this->layers[layerIndex]->getNeurons()[neuronIndex];
 
 	for (int i = 0; i < currentNeuron->getWeights().size(); ++i)
-	{
 		currentNeuron->getWeights()[i] = newWeights[i];
-	}
 }
 
 double NeuralNet::getError(const std::vector<double>& expectedValues) const

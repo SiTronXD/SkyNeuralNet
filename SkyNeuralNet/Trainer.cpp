@@ -1,13 +1,8 @@
 #include "Trainer.h"
 #include <sstream>
 
-Trainer::Trainer()
-{
-}
-
-Trainer::~Trainer()
-{
-}
+Trainer::Trainer() { }
+Trainer::~Trainer() { }
 
 void Trainer::loadFile(std::string path)
 {
@@ -16,6 +11,7 @@ void Trainer::loadFile(std::string path)
 
 void Trainer::readLine(std::vector<std::string>& foundWords)
 {
+	// Remove previous words
 	foundWords.clear();
 
 	// Read line from file
