@@ -1,5 +1,6 @@
 #include <iostream>
 
+#include "external\stb_image\stb_image.h"
 #include "NeuralNet.h"
 #include "Trainer.h"
 
@@ -8,7 +9,7 @@ int main()
 	// Catch memory leaks
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 
-	std::vector<unsigned int> neuronsPerLayer{ 2, 4, 1 };
+	/*std::vector<unsigned int> neuronsPerLayer{ 2, 4, 1 };
 	NeuralNet nn(neuronsPerLayer);
 
 	Trainer trainer;
@@ -47,7 +48,17 @@ int main()
 		nn.backProp(expectedOutputForBackprop);
 			
 		trainer.readLine(readValues);
-	}
+	}*/
+
+	Trainer trainer;
+	trainer.loadImgOfNumber(0);
+	std::vector<double> img = trainer.getImgAsVector();
+
+	for (int i = 0; i < img.size(); ++i)
+		std::cout << "i: " << i << " - " << img[i] << std::endl;
+
+	for(int i = 0; i < 10; ++i)
+		std::cout << trainer.getImgAnswer()[i] << std::endl;
 
 	getchar();
 
