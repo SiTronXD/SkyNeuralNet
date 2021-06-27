@@ -69,6 +69,9 @@ bool Trainer::loadImg(std::string path)
 	return true;
 }
 
+// Training set is from MNIST database 
+// (converted to .png from this repository: 
+// https://github.com/pjreddie/mnist-csv-png)
 bool Trainer::loadImgOfNumber(int imgIndex)
 {
 	// Example: "mnist_train/train/000000-num5.png"
