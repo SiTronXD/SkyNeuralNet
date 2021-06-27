@@ -15,6 +15,8 @@ private:
 	double outputValue;
 	double gradient;
 
+	double(*activationFunctionDerivative)(double);
+
 	std::vector<double> outputWeights;
 	std::vector<double> outputDeltaWeights;
 
@@ -23,7 +25,8 @@ private:
 	double sumWeightGradients(const std::vector<Neuron*>& nextLayerNeurons) const;
 
 public:
-	Neuron(double initialOutputValue, unsigned int numOutputWeights, int myIndex);
+	Neuron(double initialOutputValue, unsigned int numOutputWeights, int myIndex,
+		bool isOutputNeuron);
 	~Neuron();
 
 	void calcHiddenGradient(const std::vector<Neuron*>& nextLayerNeurons);

@@ -4,6 +4,23 @@
 #include "NeuralNet.h"
 #include "Trainer.h"
 
+std::string getAnswer(std::vector<double> answers)
+{
+	int currentIndex = -1;
+	double currentBest = 0.0;
+
+	for (int i = 0; i < answers.size(); ++i)
+	{
+		if (answers[i] > currentBest)
+		{
+			currentIndex = i;
+			currentBest = answers[i];
+		}
+	}
+
+	return std::to_string(currentIndex) + ": " + std::to_string(currentBest * 100.0) + "%";
+}
+
 int main()
 {
 	// Catch memory leaks
@@ -50,15 +67,70 @@ int main()
 		trainer.readLine(readValues);
 	}*/
 
+	std::vector<unsigned int> neuronsPerLayer{ 784, 100, 10 };
+	NeuralNet nn(neuronsPerLayer);
+
 	Trainer trainer;
-	trainer.loadImgOfNumber(0);
-	std::vector<double> img = trainer.getImgAsVector();
 
-	for (int i = 0; i < img.size(); ++i)
-		std::cout << "i: " << i << " - " << img[i] << std::endl;
+	std::vector<double> inputValues;
+	std::vector<double> expectedOutputForBackprop;
+	std::vector<double> outputValues;
 
-	for(int i = 0; i < 10; ++i)
-		std::cout << trainer.getImgAnswer()[i] << std::endl;
+	int trainingPass = 1;
+	int numCorrect = 0;
+	std::vector<bool> lastCorrect;
+	while (trainingPass < 5000)
+	{
+		// Load and read
+		if (!trainer.loadImgOfNumber(trainingPass - 1))
+		{
+			std::cout << "COULD NOT LOAD IMAGE" << std::endl;
+
+			break;
+		}
+		inputValues = trainer.getImgAsVector();
+		expectedOutputForBackprop = trainer.getImgAnswer();
+
+		std::cout << "Training pass: " << trainingPass << std::endl;
+		trainingPass++;
+
+		// Forward prop
+		nn.forwardProp(inputValues);
+
+		// Read output
+		nn.getOutputs(outputValues);
+		outputValues.pop_back();
+		std::string answer = getAnswer(outputValues);
+		std::string expected = getAnswer(expectedOutputForBackprop);
+
+		if (trainingPass >= 100)
+			lastCorrect.erase(lastCorrect.begin());
+
+		if (answer[0] == expected[0])
+		{
+			numCorrect++;
+			lastCorrect.push_back(true);
+		}
+		else
+			lastCorrect.push_back(false);
+
+		int numLastCorrect = 0;
+		for (int i = 0; i < lastCorrect.size(); ++i)
+		{
+			if (lastCorrect[i])
+				numLastCorrect++;
+		}
+
+		std::cout << "Answer: " << answer << std::endl;
+		std::cout << "Expected: " << expected << std::endl;
+		std::cout << "Error: " << nn.getError(expectedOutputForBackprop) << std::endl;
+		std::cout << "CorrectTimes: " << numCorrect << std::endl;
+		std::cout << "NumLastCorrect: " << numLastCorrect << std::endl;
+		std::cout << std::endl;
+
+		// Train
+		nn.backProp(expectedOutputForBackprop);
+	}
 
 	getchar();
 

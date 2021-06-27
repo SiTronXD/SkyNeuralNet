@@ -2,7 +2,7 @@
 #include "ActivationFunction.h"
 
 Layer::Layer(unsigned int numNeurons, unsigned int numOutputWeights,
-	Layer* _previousLayer)
+	Layer* _previousLayer, bool isOutputLayer)
 	: previousLayer(_previousLayer)
 {
 	// Add neurons + 1 bias neuron
@@ -16,8 +16,20 @@ Layer::Layer(unsigned int numNeurons, unsigned int numOutputWeights,
 
 		// Add neuron
 		int newNeuronIndex = this->neurons.size();
-		this->neurons.push_back(new Neuron(initialOutputValue, numOutputWeights, newNeuronIndex));
+		this->neurons.push_back(
+			new Neuron(
+				initialOutputValue, 
+				numOutputWeights, 
+				newNeuronIndex,
+				isOutputLayer
+			)
+		);
 	}
+
+	if (isOutputLayer)
+		this->activationFunction = ActivationFunction::sigmoid;
+	else
+		this->activationFunction = ActivationFunction::relu;
 }
 
 Layer::~Layer()
@@ -59,7 +71,8 @@ void Layer::calcOutputs()
 				prevNeuron->getOutputWeight(i);
 		}
 
-		result = ActivationFunction::function(result);
+		//result = ActivationFunction::function(result);
+		result = this->activationFunction(result);
 
 		this->neurons[i]->setOutputValue(result);
 	}

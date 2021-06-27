@@ -2,12 +2,20 @@
 #include "ActivationFunction.h"
 #include "Layer.h"
 
-const float Neuron::ETA = 0.15;
-const float Neuron::ALPHA = 0.5;
+const float Neuron::ETA = 0.01;		// 0.15
+const float Neuron::ALPHA = 0.35;	// 0.5
+
+// ETA: 0.01, ALPHA: 0.35, Last 100 correct: 83
+// ETA: 0.02, ALPHA: 0.35, Last 100 correct: 84
+// ETA: 0.05, ALPHA: 0.35, Last 100 correct: 85
+// ETA: 0.10, ALPHA: 0.35, Last 100 correct: 77
+// ETA: 0.15, ALPHA: 0.35, Last 100 correct: 70
+// ETA: 0.25, ALPHA: 0.35, Last 100 correct: 47
+// ETA: 0.35, ALPHA: 0.35, Last 100 correct: 40
 
 void Neuron::calcGradient(double delta)
 {
-	this->gradient = delta * ActivationFunction::derivative(this->outputValue);
+	this->gradient = delta * this->activationFunctionDerivative(this->outputValue);
 }
 
 double Neuron::sumWeightGradients(const std::vector<Neuron*>& nextLayerNeurons) const
@@ -21,7 +29,7 @@ double Neuron::sumWeightGradients(const std::vector<Neuron*>& nextLayerNeurons) 
 }
 
 Neuron::Neuron(double initialOutputValue, unsigned int numOutputWeights, 
-	int myIndex)
+	int myIndex, bool isOutputNeuron)
 	: outputValue(initialOutputValue), gradient(0.0), myIndex(myIndex)
 {
 	// Create random output weights
@@ -30,6 +38,11 @@ Neuron::Neuron(double initialOutputValue, unsigned int numOutputWeights,
 		this->outputWeights.push_back((double)rand() / RAND_MAX);
 		this->outputDeltaWeights.push_back(0.0);
 	}
+
+	if (isOutputNeuron)
+		this->activationFunctionDerivative = ActivationFunction::sigmoidDerivative;
+	else
+		this->activationFunctionDerivative = ActivationFunction::reluDerivative;
 }
 
 Neuron::~Neuron() { }

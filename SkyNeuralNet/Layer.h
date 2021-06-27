@@ -9,9 +9,11 @@ private:
 
 	Layer* previousLayer;
 
+	double(*activationFunction)(double);
+
 public:
 	Layer(unsigned int numNeurons, unsigned int numOutputWeights, 
-		Layer* previousLayer);
+		Layer* previousLayer, bool isOutputLayer);
 	~Layer();
 
 	void setAllOutputs(std::vector<double> outputValues);

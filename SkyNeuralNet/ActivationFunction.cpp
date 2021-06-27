@@ -1,6 +1,18 @@
 #include "ActivationFunction.h"
 #include <cmath>
 
+double ActivationFunction::sigmoid(double x)
+{
+	return 1.0 / (1.0 + exp(-x));
+}
+
+double ActivationFunction::sigmoidDerivative(double x)
+{
+	double s = sigmoid(x);
+
+	return s * (1.0 - s);
+}
+
 double ActivationFunction::tanH(double x)
 {
 	return std::tanh(x);
@@ -8,16 +20,16 @@ double ActivationFunction::tanH(double x)
 
 double ActivationFunction::tanHDerivative(double x)
 {
-	return 1.0 - (x * x);
-	//return 1.0 - (std::tanh(x) * std::tanh(x));
+	//return 1.0 - (x * x);
+	return 1.0 - (std::tanh(x) * std::tanh(x));
 }
 
-double ActivationFunction::function(double x)
+double ActivationFunction::relu(double x)
 {
-	return ActivationFunction::tanH(x);
+	return std::fmax(0.0, x);
 }
 
-double ActivationFunction::derivative(double x)
+double ActivationFunction::reluDerivative(double x)
 {
-	return ActivationFunction::tanHDerivative(x);
+	return x >= 0.0 ? 1.0 : 0.0;
 }

@@ -51,7 +51,8 @@ NeuralNet::NeuralNet(const std::vector<unsigned int>& neuronPerLayer)
 			new Layer(
 				neuronPerLayer[i], 
 				numOutputWeights, 
-				previousLayer
+				previousLayer,
+				i == neuronPerLayer.size() - 1
 			)
 		);
 	}
@@ -90,6 +91,8 @@ void NeuralNet::backProp(const std::vector<double>& expectedValues)
 
 void NeuralNet::getOutputs(std::vector<double>& outputValues)
 {
+	outputValues.clear();
+
 	// Get all neurons
 	std::vector<Neuron*>& outputNeurons = this->layers.back()->getNeurons();
 
