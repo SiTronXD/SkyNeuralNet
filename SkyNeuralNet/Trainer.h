@@ -1,34 +1,21 @@
 #pragma once
 
-#include <fstream>
-#include <string>
-#include <vector>
+#include "NeuralNetwork\TrainingData.h"
 
 class Trainer
 {
 private:
-	// Load file
-	std::ifstream readableDataFile;
+	TrainingData trainingData;
 
-	// Load image
-	int imageWidth;
-	int imageHeight;
-	int imageComponents;
+	int* setNum;
 
-	unsigned char* imageData;
-
-	std::vector<double> imgArray;
 	std::vector<double> imgAnswer;
 
 public:
-	Trainer();
+	Trainer(int numTrainingSets);
 	~Trainer();
 
-	bool loadFile(std::string path);
-	bool loadImg(std::string path);
-	bool loadImgOfNumber(int imgIndex);
-
-	void readLine(std::vector<std::string>& foundWords);
+	const bool loadImgOfNumber(int imgIndex);
 
 	const std::vector<double>& getImgAsVector() const;
 	const std::vector<double>& getImgAnswer() const;

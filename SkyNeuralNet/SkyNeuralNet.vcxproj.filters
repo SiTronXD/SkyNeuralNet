@@ -26,43 +26,49 @@
     <ClCompile Include="Main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="NeuralNet.cpp">
+    <ClCompile Include="NeuralNetwork\NeuralNet.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Layer.cpp">
+    <ClCompile Include="NeuralNetwork\Layer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Neuron.cpp">
+    <ClCompile Include="NeuralNetwork\Neuron.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ActivationFunction.cpp">
+    <ClCompile Include="NeuralNetwork\ActivationFunction.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Trainer.cpp">
+    <ClCompile Include="NeuralNetwork\TrainingData.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="external\stb_image\stb_image.c">
       <Filter>External</Filter>
     </ClCompile>
+    <ClCompile Include="Trainer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="NeuralNet.h">
+    <ClInclude Include="NeuralNetwork\NeuralNet.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Layer.h">
+    <ClInclude Include="NeuralNetwork\Layer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Neuron.h">
+    <ClInclude Include="NeuralNetwork\Neuron.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ActivationFunction.h">
+    <ClInclude Include="NeuralNetwork\ActivationFunction.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Trainer.h">
+    <ClInclude Include="NeuralNetwork\TrainingData.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="external\stb_image\stb_image.h">
       <Filter>External</Filter>
+    </ClInclude>
+    <ClInclude Include="Trainer.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

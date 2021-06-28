@@ -1,7 +1,7 @@
 #include <iostream>
 
 #include "external\stb_image\stb_image.h"
-#include "NeuralNet.h"
+#include "NeuralNetwork/NeuralNet.h"
 #include "Trainer.h"
 
 std::string getAnswer(std::vector<double> answers)
@@ -30,7 +30,7 @@ int main()
 	NeuralNet nn(neuronsPerLayer);
 
 	Trainer trainer;
-	trainer.loadFile("TrainingData.txt");
+	trainer.loadFile("XORTrainingData.txt");
 
 	std::vector<std::string> readValues;
 	trainer.readLine(readValues);
@@ -70,29 +70,36 @@ int main()
 	std::vector<unsigned int> neuronsPerLayer{ 784, 100, 10 };
 	NeuralNet nn(neuronsPerLayer);
 
-	Trainer trainer;
+	const int NUM_TRAINING_SETS = 5000;
+	Trainer trainer(NUM_TRAINING_SETS);
 
 	std::vector<double> inputValues;
 	std::vector<double> expectedOutputForBackprop;
 	std::vector<double> outputValues;
 
-	int trainingPass = 1;
+	int trainingPass = 0;
 	int numCorrect = 0;
 	std::vector<bool> lastCorrect;
-	while (trainingPass < 5000)
+
+	// Track time
+	long startTime = std::clock();
+
+	while (trainingPass < NUM_TRAINING_SETS)
 	{
 		// Load and read
-		if (!trainer.loadImgOfNumber(trainingPass - 1))
+		if (!trainer.loadImgOfNumber(trainingPass))
 		{
 			std::cout << "COULD NOT LOAD IMAGE" << std::endl;
 
 			break;
 		}
+		trainingPass++;
+
+		// Read input and expected output
 		inputValues = trainer.getImgAsVector();
 		expectedOutputForBackprop = trainer.getImgAnswer();
 
 		std::cout << "Training pass: " << trainingPass << std::endl;
-		trainingPass++;
 
 		// Forward prop
 		nn.forwardProp(inputValues);
@@ -103,9 +110,11 @@ int main()
 		std::string answer = getAnswer(outputValues);
 		std::string expected = getAnswer(expectedOutputForBackprop);
 
+		// Keep track of the last 100 answers
 		if (trainingPass >= 100)
 			lastCorrect.erase(lastCorrect.begin());
 
+		// Right/wrong?
 		if (answer[0] == expected[0])
 		{
 			numCorrect++;
@@ -131,6 +140,17 @@ int main()
 		// Train
 		nn.backProp(expectedOutputForBackprop);
 	}
+
+	// Save time
+	long endTime = std::clock();
+	long totalTime = (endTime - startTime);
+	long seconds = totalTime / 1000;
+
+	// Show time
+	std::cout << "Done" << std::endl;
+	std::cout << "Time: " << seconds / 60 << " minutes " 
+		<< seconds % 60 << " seconds" << " (" << totalTime 
+		<< " milliseconds)" << std::endl;
 
 	getchar();
 
