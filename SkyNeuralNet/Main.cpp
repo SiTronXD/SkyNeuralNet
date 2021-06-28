@@ -26,7 +26,7 @@ int main()
 	// Catch memory leaks
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 
-	/*std::vector<unsigned int> neuronsPerLayer{ 2, 4, 1 };
+	std::vector<unsigned int> neuronsPerLayer{ 2, 4, 1 };
 	NeuralNet nn(neuronsPerLayer);
 
 	Trainer trainer;
@@ -65,9 +65,9 @@ int main()
 		nn.backProp(expectedOutputForBackprop);
 			
 		trainer.readLine(readValues);
-	}*/
+	}
 
-	std::vector<unsigned int> neuronsPerLayer{ 784, 100, 10 };
+	/*std::vector<unsigned int> neuronsPerLayer{ 784, 100, 10 };
 	NeuralNet nn(neuronsPerLayer);
 
 	const int NUM_TRAINING_SETS = 5000;
@@ -81,11 +81,14 @@ int main()
 	int numCorrect = 0;
 	std::vector<bool> lastCorrect;
 
-	// Track time
+	// Track time of overall training
 	long startTime = std::clock();
 
 	while (trainingPass < NUM_TRAINING_SETS)
 	{
+		// Track time of training pass
+		long startTrainingPassTime = std::clock();
+
 		// Load and read
 		if (!trainer.loadImgOfNumber(trainingPass))
 		{
@@ -101,7 +104,7 @@ int main()
 
 		std::cout << "Training pass: " << trainingPass << std::endl;
 
-		// Forward prop
+		// Forward propagation
 		nn.forwardProp(inputValues);
 
 		// Read output
@@ -135,22 +138,26 @@ int main()
 		std::cout << "Error: " << nn.getError(expectedOutputForBackprop) << std::endl;
 		std::cout << "CorrectTimes: " << numCorrect << std::endl;
 		std::cout << "NumLastCorrect: " << numLastCorrect << std::endl;
-		std::cout << std::endl;
 
-		// Train
+		// Back propagation
 		nn.backProp(expectedOutputForBackprop);
+
+		// Save and write time for this training pass
+		long endTrainingPassTime = std::clock();
+		std::cout << "Time for pass: " << (endTrainingPassTime - startTrainingPassTime) << " milliseconds" << std::endl;
+		std::cout << std::endl;
 	}
 
-	// Save time
+	// Save time for overall training
 	long endTime = std::clock();
 	long totalTime = (endTime - startTime);
 	long seconds = totalTime / 1000;
 
-	// Show time
+	// Write time
 	std::cout << "Done" << std::endl;
 	std::cout << "Time: " << seconds / 60 << " minutes " 
 		<< seconds % 60 << " seconds" << " (" << totalTime 
-		<< " milliseconds)" << std::endl;
+		<< " milliseconds)" << std::endl;*/
 
 	getchar();
 

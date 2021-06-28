@@ -14,17 +14,18 @@ TrainingData::~TrainingData()
 	stbi_image_free(this->imageData);
 }
 
-bool TrainingData::loadFile(std::string path)
+const bool TrainingData::loadFile(std::string path)
 {
 	this->readableDataFile.open(path);
 
 	return this->readableDataFile.is_open();
 }
 
-bool TrainingData::loadImg(std::string path)
+const bool TrainingData::loadImg(std::string path)
 {
 	// Free old image
 	stbi_image_free(this->imageData);
+	this->imageData = nullptr;
 
 	// Load image and assign variables
 	this->imageData = stbi_load(
@@ -42,7 +43,7 @@ bool TrainingData::loadImg(std::string path)
 	}
 
 	unsigned char* pixelOffset;
-	double r, g, b, a;
+	double r, g, b;
 
 	// Load grey-scale values
 	this->imgArray.clear();

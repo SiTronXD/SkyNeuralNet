@@ -23,8 +23,8 @@ public:
 	TrainingData();
 	~TrainingData();
 
-	bool loadFile(std::string path);
-	bool loadImg(std::string path);
+	const bool loadFile(std::string path);
+	const bool loadImg(std::string path);
 
 	void readLine(std::vector<std::string>& foundWords);
 

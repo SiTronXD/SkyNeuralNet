@@ -2,8 +2,8 @@
 #include "ActivationFunction.h"
 #include "Layer.h"
 
-const float Neuron::ETA = 0.01;		// 0.15
-const float Neuron::ALPHA = 0.35;	// 0.5
+const float Neuron::ETA = 0.15;		// 0.15
+const float Neuron::ALPHA = 0.5;	// 0.5
 
 // ETA: 0.01, ALPHA: 0.35, 5000 sets, Last 100 correct: 84, Correct: 2815
 // ETA: 0.02, ALPHA: 0.35, 5000 sets, Last 100 correct: 85, Correct: 3490

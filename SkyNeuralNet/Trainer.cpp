@@ -1,6 +1,11 @@
 #include "Trainer.h"
 #include <iostream>
 
+Trainer::Trainer()
+	: setNum(nullptr)
+{
+}
+
 Trainer::Trainer(int numTrainingSets)
 	: setNum(nullptr)
 {
@@ -28,6 +33,11 @@ Trainer::~Trainer()
 	delete[] this->setNum;
 }
 
+const bool Trainer::loadFile(std::string filePath)
+{
+	return this->trainingData.loadFile(filePath);
+}
+
 // Training set is from MNIST database 
 // (converted to .png from this repository: 
 // https://github.com/pjreddie/mnist-csv-png)
@@ -35,7 +45,7 @@ const bool Trainer::loadImgOfNumber(int imgIndex)
 {
 	// Example: "mnist_train/train/000000-num5.png"
 	std::string name = "E:/simon/Bilder - Data Drive/TrainingSets/mnist_train/train/";
-	int digits = imgIndex == 0 ? 1 : log10(imgIndex) + 1;
+	int digits = imgIndex == 0 ? 1 : (int) log10(imgIndex) + 1;
 	for (int i = 6 - digits; i > 0; --i)
 		name += "0";
 	name += std::to_string(imgIndex);
@@ -61,6 +71,11 @@ const bool Trainer::loadImgOfNumber(int imgIndex)
 	std::cout << "Can not find training image..." << std::endl;
 
 	return false;
+}
+
+void Trainer::readLine(std::vector<std::string>& foundWords)
+{
+	this->trainingData.readLine(foundWords);
 }
 
 const std::vector<double>& Trainer::getImgAsVector() const

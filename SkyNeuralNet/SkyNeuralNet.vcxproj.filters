@@ -21,6 +21,13 @@
     <CudaCompile Include="Main.cu">
       <Filter>Source Files</Filter>
     </CudaCompile>
+    <CudaCompile Include="NeuralNetwork\NeuralNetGPUFunctions.cu">
+      <Filter>Resource Files</Filter>
+    </CudaCompile>
+    <CudaCompile Include="NeuralNetwork\NeuralNetGPU.cu">
+      <Filter>Source Files</Filter>
+    </CudaCompile>
+    <CudaCompile Include="NeuralNetwork\NeuralNetGPUFunctions.cuh" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -69,6 +76,9 @@
     </ClInclude>
     <ClInclude Include="Trainer.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="NeuralNetwork\NeuralNetGPU.cuh">
+      <Filter>Resource Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -33,6 +33,7 @@ void NeuralNet::updateWeights()
 }
 
 NeuralNet::NeuralNet(const std::vector<unsigned int>& neuronPerLayer)
+	: useGPU(true)
 {
 	for (int i = 0; i < neuronPerLayer.size(); ++i)
 	{
@@ -63,17 +64,28 @@ NeuralNet::~NeuralNet()
 	for (int i = 0; i < this->layers.size(); ++i)
 		delete this->layers[i];
 	this->layers.clear();
+
+	//this->gpuNeuralNet.release();
 }
 
-void NeuralNet::forwardProp(const std::vector<double>& inputValues)
+// Calculate output values in each layer
+void NeuralNet::forwardProp(std::vector<double>& inputValues)
 {
-	// Manually set output values in the input layer
-	this->layers[0]->setAllOutputs(inputValues);
-
-	// TODO: Rewrite this for the gpu later
-	for (int i = 1; i < this->layers.size(); ++i)
+	// CUDA
+	if (this->useGPU)	
 	{
-		this->layers[i]->calcOutputs();
+		this->gpuNeuralNet.forwardProp(inputValues);
+	}
+	// CPU
+	else				
+	{
+		// Manually set output values in the input layer
+		this->layers[0]->setAllOutputs(inputValues);
+
+		for (int i = 1; i < this->layers.size(); ++i)
+		{
+			this->layers[i]->calcOutputs();
+		}
 	}
 }
 
@@ -109,6 +121,11 @@ void NeuralNet::setWeight(unsigned int layerIndex, unsigned int neuronIndex,
 
 	for (int i = 0; i < currentNeuron->getWeights().size(); ++i)
 		currentNeuron->getWeights()[i] = newWeights[i];
+}
+
+void NeuralNet::setUseGPU(bool useGPU)
+{
+	this->useGPU = useGPU;
 }
 
 double NeuralNet::getError(const std::vector<double>& expectedValues) const
