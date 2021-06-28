@@ -6,7 +6,12 @@ Trainer::Trainer(int numTrainingSets)
 {
 	// Load number order
 	this->setNum = new int[numTrainingSets];
-	this->trainingData.loadFile("E:/simon/Bilder - Data Drive/TrainingSets/mnist_train/TrainingSetNumberOrder.txt");
+	if (!this->trainingData.loadFile("E:/simon/Bilder - Data Drive/TrainingSets/mnist_train/TrainingSetNumberOrder.txt"))
+	{
+		std::cout << "Could not find number order text file..." << std::endl;
+
+		return;
+	}
 
 	// Insert number order
 	std::vector<std::string> readWords;
