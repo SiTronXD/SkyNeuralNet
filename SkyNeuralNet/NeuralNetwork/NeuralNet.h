@@ -12,6 +12,11 @@ private:
 
 	bool useGPU;
 
+	void(NeuralNet::*forwardPropExecutionFunction)();
+
+	void executeCudaForwardProp();
+	void executeCPUForwardProp();
+
 	void calcOutputLayerGradients(const std::vector<double>& expectedValues);
 	void calcHiddenLayerGradients(const std::vector<double>& expectedValues);
 	void updateWeights();

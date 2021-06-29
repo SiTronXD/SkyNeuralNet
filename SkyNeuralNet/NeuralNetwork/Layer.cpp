@@ -47,11 +47,17 @@ void Layer::setAllOutputs(std::vector<double> outputValues)
 	if (outputValues.size() != neurons.size() - 1)
 		throw "Number of output values was not equal to number of neurons...";
 
-	// Set all values
-	for (int i = 0; i < outputValues.size(); ++i)
-	{
+	// Loop through neurons and set values
+	for (int i = 0; i < neurons.size() - 1; ++i)
 		this->neurons[i]->setOutputValue(outputValues[i]);
-	}
+}
+
+// Sets output values for the input layer
+void Layer::setAllOutputs(double* outputValues)
+{
+	// Loop through neurons and set values
+	for (int i = 0; i < this->neurons.size() - 1; ++i)
+		this->neurons[i]->setOutputValue(outputValues[i]);
 }
 
 // Calculate outputs when executing forward propagation

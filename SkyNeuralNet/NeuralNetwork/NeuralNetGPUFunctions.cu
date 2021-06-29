@@ -15,6 +15,8 @@ __device__ double activationFunctionOutput(double x)
 	return 1.0 / (1.0 + exp(-x));
 }
 
+#define MAX_BLOCKING_NEURON_SIZE 1024
+
 __global__ void cudaForwardProp(
 	double* neuronOutputs,
 	double* neuronWeights,
@@ -22,6 +24,8 @@ __global__ void cudaForwardProp(
 	int numLayers
 )
 {
+	__shared__ double lastLayerOutputs[MAX_BLOCKING_NEURON_SIZE];
+
 	int id = blockIdx.x * blockDim.x + threadIdx.x;
 
 	int layerIndexStride = 0;
@@ -33,6 +37,15 @@ __global__ void cudaForwardProp(
 	{
 		layerIndexStride += neuronsPerLayer[l - 1];
 
+		// Load last layer output values
+		// into shared memory
+		if (id < neuronsPerLayer[l - 1])
+		{
+			lastLayerOutputs[id] = 
+				neuronOutputs[lastLayerIndexStride + id];
+		}
+		__syncthreads();
+
 		// Don't calculate output for bias neurons
 		if (id < neuronsPerLayer[l] - 1)
 		{
@@ -41,11 +54,11 @@ __global__ void cudaForwardProp(
 			// Go through each neuron from the last layer
 			for (int n = 0; n < neuronsPerLayer[l - 1]; ++n)
 			{
-				double outVal = neuronOutputs[lastLayerIndexStride + n];
+				double outVal = lastLayerOutputs[n];
 				double weightVal = 
 					neuronWeights[
 						lastLayerWeightStride +
-						(neuronsPerLayer[l] - 1) * n + // Remove bias neuron
+						(neuronsPerLayer[l] - 1) * n + // Ignore bias neuron
 						id
 					];
 
@@ -78,9 +91,4 @@ __global__ void cudaForwardProp(
 
 		__syncthreads();
 	}
-
-	/*if (neuronOutputs[0] != neuronOutputs[1])
-		neuronOutputs[0] = 1;
-	else
-		neuronOutputs[0] = 0;*/
 }

@@ -29,7 +29,7 @@ public:
 	~NeuralNetGPU();
 
 	void setupTrainingSession(
-		const unsigned int numLayers,
+		std::vector<Layer*>& layers,
 		const unsigned int numNeurons,
 		const unsigned int numWeights,
 		const unsigned int maxNumNeuronsInLayer

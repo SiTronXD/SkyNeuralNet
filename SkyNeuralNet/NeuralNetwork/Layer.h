@@ -17,6 +17,7 @@ public:
 	~Layer();
 
 	void setAllOutputs(std::vector<double> outputValues);
+	void setAllOutputs(double* outputValues);
 	void calcOutputs();
 	void calcHiddenNeuronGradients(Layer* nextLayer);
 	void calcOutputNeuronGradients(const std::vector<double>& expectedValues);

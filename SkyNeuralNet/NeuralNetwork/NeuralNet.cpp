@@ -2,6 +2,20 @@
 #include <iostream>
 #include <cmath>
 
+// Execute forward propagation with CUDA
+void NeuralNet::executeCudaForwardProp()
+{
+	this->gpuNeuralNet.forwardProp(this->layers);
+}
+
+// Execute forward propagation on the CPU
+void NeuralNet::executeCPUForwardProp()
+{
+	// Calculate each output value
+	for (int i = 1; i < this->layers.size(); ++i)
+		this->layers[i]->calcOutputs();
+}
+
 void NeuralNet::calcOutputLayerGradients(const std::vector<double>& expectedValues)
 {
 	// Output layer
@@ -64,6 +78,8 @@ const void NeuralNet::getNeuronInfo(
 NeuralNet::NeuralNet(const std::vector<unsigned int>& neuronPerLayer)
 	: useGPU(true)
 {
+	this->setUseGPU(true);
+
 	for (int i = 0; i < neuronPerLayer.size(); ++i)
 	{
 		// Get number of output weights, if it exists
@@ -93,7 +109,7 @@ NeuralNet::NeuralNet(const std::vector<unsigned int>& neuronPerLayer)
 
 	// Setup training session for the GPU
 	this->gpuNeuralNet.setupTrainingSession(
-		this->layers.size(),
+		this->layers,
 		numNeurons,
 		numWeights,
 		maxNumNeuronsInLayer
@@ -115,21 +131,8 @@ void NeuralNet::forwardProp(std::vector<double>& inputValues)
 	// Manually set output values in the input layer
 	this->layers[0]->setAllOutputs(inputValues);
 
-	// CUDA
-	if (this->useGPU)	
-	{
-		// Execute with CUDA
-		this->gpuNeuralNet.forwardProp(this->layers);
-	}
-	// CPU
-	else				
-	{
-		// Calculate each output value
-		for (int i = 1; i < this->layers.size(); ++i)
-		{
-			this->layers[i]->calcOutputs();
-		}
-	}
+	// Execute
+	(this->*forwardPropExecutionFunction)();
 }
 
 void NeuralNet::backProp(const std::vector<double>& expectedValues)
@@ -169,6 +172,17 @@ void NeuralNet::setWeight(unsigned int layerIndex, unsigned int neuronIndex,
 void NeuralNet::setUseGPU(bool useGPU)
 {
 	this->useGPU = useGPU;
+
+	// CUDA
+	if (this->useGPU)
+	{
+		this->forwardPropExecutionFunction = &NeuralNet::executeCudaForwardProp;
+	}
+	// CPU
+	else
+	{
+		this->forwardPropExecutionFunction = &NeuralNet::executeCPUForwardProp;
+	}
 }
 
 double NeuralNet::getError(const std::vector<double>& expectedValues) const

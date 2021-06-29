@@ -26,18 +26,21 @@ NeuralNetGPU::NeuralNetGPU()
 NeuralNetGPU::~NeuralNetGPU() { }
 
 void NeuralNetGPU::setupTrainingSession(
-	const unsigned int numLayers,
+	std::vector<Layer*>& layers,
 	const unsigned int numNeurons,
 	const unsigned int numWeights,
 	const unsigned int maxNumNeuronsInLayer
 )
 {
-	this->numLayers = numLayers;
+	this->numLayers = layers.size();
 	this->numNeurons = numNeurons;
 	this->numWeights = numWeights;
 	this->maxNumNeuronsInLayer = maxNumNeuronsInLayer;
 
-	// Variables for CPU <-> GPU communication
+
+	// ----- Variables for CPU <-> GPU communication -----
+
+	// All output values
 	this->host_neuronOutputs = new double[this->numNeurons];
 	this->devi_neuronOutputs = nullptr;
 
@@ -49,6 +52,9 @@ void NeuralNetGPU::setupTrainingSession(
 	this->host_neuronsPerLayer = new int[this->numLayers];
 	this->devi_neuronsPerLayer = nullptr;
 
+	// Insert number of neurons per layer
+	for(int i = 0; i < this->numLayers; ++i)
+		host_neuronsPerLayer[i] = layers[i]->getNeurons().size();
 
 	// Allocate variables on GPU
 	this->safeMalloc(
@@ -60,20 +66,42 @@ void NeuralNetGPU::setupTrainingSession(
 	this->safeMalloc(
 		cudaMalloc(&devi_neuronsPerLayer, sizeof(int) * this->numLayers)
 	);
+
+	// Copy over number of neurons per layer, 
+	// since this stays static
+	this->safeCopy(
+		cudaMemcpy(
+			devi_neuronsPerLayer,
+			host_neuronsPerLayer,
+			sizeof(int) * layers.size(),
+			cudaMemcpyHostToDevice
+		)
+	);
 }
 
 void NeuralNetGPU::forwardProp(std::vector<Layer*>& layers)
 {
-	// Neuron outputs
-	unsigned int currentNeuron = 0;
+	// Neuron outputs, weights
+	unsigned int currentNeuronIndex = 0;
+	unsigned int currentWeightIndex = 0;
 	for (int i = 0; i < layers.size(); ++i)
 	{
 		std::vector<Neuron*>& layerNeurons = layers[i]->getNeurons();
 
-		// Insert output neuron output values
+		// Loop through neurons
 		for (int j = 0; j < layerNeurons.size(); ++j)
 		{
-			host_neuronOutputs[currentNeuron++] = layerNeurons[j]->getOutputValue();
+			// Insert output values 
+			// (only the first layer actually matters here)
+			host_neuronOutputs[currentNeuronIndex++] = layerNeurons[j]->getOutputValue();
+		
+			// Loop through weights
+			std::vector<double>& currentWeights = layerNeurons[j]->getWeights();
+			for (int k = 0; k < currentWeights.size(); ++k)
+			{
+				// Insert weights
+				host_neuronWeights[currentWeightIndex++] = currentWeights[k];
+			}
 		}
 	}
 	this->safeCopy(
@@ -84,42 +112,11 @@ void NeuralNetGPU::forwardProp(std::vector<Layer*>& layers)
 			cudaMemcpyHostToDevice
 		)
 	);
-
-	// Neuron weights
-	unsigned int currentWeight = 0;
-	for (int i = 0; i < layers.size(); ++i)
-	{
-		std::vector<Neuron*>& currentNeurons = layers[i]->getNeurons();
-
-		for (int j = 0; j < currentNeurons.size(); ++j)
-		{
-			std::vector<double>& currentWeights = currentNeurons[j]->getWeights();
-
-			for (int k = 0; k < currentWeights.size(); ++k)
-			{
-				host_neuronWeights[currentWeight++] = currentWeights[k];
-			}
-		}
-	}
 	this->safeCopy(
 		cudaMemcpy(
 			devi_neuronWeights,
 			host_neuronWeights,
 			sizeof(double) * numWeights,
-			cudaMemcpyHostToDevice
-		)
-	);
-
-	// Number of neurons per layer
-	for (int i = 0; i < layers.size(); ++i)
-	{
-		host_neuronsPerLayer[i] = layers[i]->getNeurons().size();
-	}
-	this->safeCopy(
-		cudaMemcpy(
-			devi_neuronsPerLayer,
-			host_neuronsPerLayer,
-			sizeof(int) * layers.size(),
 			cudaMemcpyHostToDevice
 		)
 	);
@@ -154,22 +151,14 @@ void NeuralNetGPU::forwardProp(std::vector<Layer*>& layers)
 	}
 
 
-	// Apply results to network
+	// ----- Apply results to network -----
 	unsigned int currentNeuronStride = layers[0]->getNeurons().size();
 	for (int i = 1; i < layers.size(); ++i)
 	{
-		std::vector<double> results;
-		std::vector<Neuron*>& currentNeurons = layers[i]->getNeurons();
+		// Set
+		layers[i]->setAllOutputs(&host_neuronOutputs[currentNeuronStride]);
 
-		// Add result to vector
-		for (int j = 0; j < currentNeurons.size() - 1; ++j)
-		{
-			double currentResult = host_neuronOutputs[currentNeuronStride + j];
-
-			results.push_back(currentResult);
-		}
-
-		layers[i]->setAllOutputs(results);
+		// Move stride
 		currentNeuronStride += layers[i]->getNeurons().size();
 	}
 }
