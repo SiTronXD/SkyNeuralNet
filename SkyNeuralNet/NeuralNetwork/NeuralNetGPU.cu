@@ -18,29 +18,52 @@ void NeuralNetGPU::safeCopy(const cudaError_t& error)
 	}
 }
 
-void NeuralNetGPU::forwardProp(
-	std::vector<Layer*>& layers, 
+NeuralNetGPU::NeuralNetGPU()
+	: numNeurons(0), host_neuronOutputs(nullptr), devi_neuronOutputs(nullptr)
+{
+}
+
+NeuralNetGPU::~NeuralNetGPU() { }
+
+void NeuralNetGPU::setupTrainingSession(
+	const unsigned int numLayers,
 	const unsigned int numNeurons,
 	const unsigned int numWeights,
 	const unsigned int maxNumNeuronsInLayer
 )
 {
-	// All outputs
-	double* host_neuronOutputs = new double[numNeurons];
-	double* devi_neuronOutputs = nullptr;
+	this->numLayers = numLayers;
+	this->numNeurons = numNeurons;
+	this->numWeights = numWeights;
+	this->maxNumNeuronsInLayer = maxNumNeuronsInLayer;
+
+	// Variables for CPU <-> GPU communication
+	this->host_neuronOutputs = new double[this->numNeurons];
+	this->devi_neuronOutputs = nullptr;
 
 	// All weights
-	double* host_neuronWeights = new double[numWeights];
-	double* devi_neuronWeights = nullptr;
+	this->host_neuronWeights = new double[this->numWeights];
+	this->devi_neuronWeights = nullptr;
 
 	// Number of neurons per layer
-	int* host_neuronsPerLayer = new int[layers.size()];
-	int* devi_neuronsPerLayer = nullptr;
-
-	// Number of layers
-	int host_numLayers = layers.size();
+	this->host_neuronsPerLayer = new int[this->numLayers];
+	this->devi_neuronsPerLayer = nullptr;
 
 
+	// Allocate variables on GPU
+	this->safeMalloc(
+		cudaMalloc(&devi_neuronOutputs, sizeof(double) * this->numNeurons)
+	);
+	this->safeMalloc(
+		cudaMalloc(&devi_neuronWeights, sizeof(double) * this->numWeights)
+	);
+	this->safeMalloc(
+		cudaMalloc(&devi_neuronsPerLayer, sizeof(int) * this->numLayers)
+	);
+}
+
+void NeuralNetGPU::forwardProp(std::vector<Layer*>& layers)
+{
 	// Neuron outputs
 	unsigned int currentNeuron = 0;
 	for (int i = 0; i < layers.size(); ++i)
@@ -53,9 +76,6 @@ void NeuralNetGPU::forwardProp(
 			host_neuronOutputs[currentNeuron++] = layerNeurons[j]->getOutputValue();
 		}
 	}
-	this->safeMalloc(
-		cudaMalloc(&devi_neuronOutputs, sizeof(double) * numNeurons)
-	);
 	this->safeCopy(
 		cudaMemcpy(
 			devi_neuronOutputs,
@@ -81,9 +101,6 @@ void NeuralNetGPU::forwardProp(
 			}
 		}
 	}
-	this->safeMalloc(
-		cudaMalloc(&devi_neuronWeights, sizeof(double) * numWeights)
-	);
 	this->safeCopy(
 		cudaMemcpy(
 			devi_neuronWeights,
@@ -98,9 +115,6 @@ void NeuralNetGPU::forwardProp(
 	{
 		host_neuronsPerLayer[i] = layers[i]->getNeurons().size();
 	}
-	this->safeMalloc(
-		cudaMalloc(&devi_neuronsPerLayer, sizeof(int) * layers.size())
-	);
 	this->safeCopy(
 		cudaMemcpy(
 			devi_neuronsPerLayer,
@@ -110,12 +124,12 @@ void NeuralNetGPU::forwardProp(
 		)
 	);
 
-	// Execute on GPU
+	// ----- Execute on GPU -----
 	cudaForwardProp<<<1, maxNumNeuronsInLayer >>>(
 		devi_neuronOutputs, 
 		devi_neuronWeights,
 		devi_neuronsPerLayer,
-		host_numLayers
+		(int) this->numLayers
 	);
 	cudaDeviceSynchronize();
 
@@ -129,7 +143,18 @@ void NeuralNetGPU::forwardProp(
 		)
 	);
 
-	// Apply results
+	// Let the CPU calculate activation function for output layer
+	std::vector<Neuron*>& lastLayerNeurons = layers.back()->getNeurons();
+	for (int i = 0; i < lastLayerNeurons.size(); ++i)
+	{
+		int currentIndex = this->numNeurons - lastLayerNeurons.size() + i;
+
+		host_neuronOutputs[currentIndex] = 
+			ActivationFunction::activateOutput(host_neuronOutputs[currentIndex]);
+	}
+
+
+	// Apply results to network
 	unsigned int currentNeuronStride = layers[0]->getNeurons().size();
 	for (int i = 1; i < layers.size(); ++i)
 	{
@@ -141,17 +166,16 @@ void NeuralNetGPU::forwardProp(
 		{
 			double currentResult = host_neuronOutputs[currentNeuronStride + j];
 
-			// Let the CPU calculate activation function for output layer
-			if (i == layers.size() - 1)
-				currentResult = ActivationFunction::activateOutput(currentResult);
-
 			results.push_back(currentResult);
 		}
 
 		layers[i]->setAllOutputs(results);
 		currentNeuronStride += layers[i]->getNeurons().size();
 	}
+}
 
+void NeuralNetGPU::releaseTrainingSession()
+{
 	delete[] host_neuronOutputs;
 	delete[] host_neuronWeights;
 	delete[] host_neuronsPerLayer;
@@ -159,9 +183,6 @@ void NeuralNetGPU::forwardProp(
 	cudaFree(devi_neuronOutputs);
 	cudaFree(devi_neuronWeights);
 	cudaFree(devi_neuronsPerLayer);
-}
 
-void NeuralNetGPU::release()
-{
 	cudaDeviceReset();
 }

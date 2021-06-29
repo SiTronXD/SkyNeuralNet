@@ -86,6 +86,18 @@ NeuralNet::NeuralNet(const std::vector<unsigned int>& neuronPerLayer)
 			)
 		);
 	}
+
+	// Get info about network
+	unsigned int numNeurons, numWeights, maxNumNeuronsInLayer;
+	this->getNeuronInfo(numNeurons, numWeights, maxNumNeuronsInLayer);
+
+	// Setup training session for the GPU
+	this->gpuNeuralNet.setupTrainingSession(
+		this->layers.size(),
+		numNeurons,
+		numWeights,
+		maxNumNeuronsInLayer
+	);
 }
 
 NeuralNet::~NeuralNet()
@@ -94,7 +106,7 @@ NeuralNet::~NeuralNet()
 		delete this->layers[i];
 	this->layers.clear();
 
-	this->gpuNeuralNet.release();
+	this->gpuNeuralNet.releaseTrainingSession();
 }
 
 // Calculate output values in each layer
@@ -106,17 +118,8 @@ void NeuralNet::forwardProp(std::vector<double>& inputValues)
 	// CUDA
 	if (this->useGPU)	
 	{
-		// Get info
-		unsigned int numNeurons, numWeights, maxNumNeuronsInLayer;
-		this->getNeuronInfo(numNeurons, numWeights, maxNumNeuronsInLayer);
-
 		// Execute with CUDA
-		this->gpuNeuralNet.forwardProp(
-			this->layers, 
-			numNeurons,
-			numWeights,
-			maxNumNeuronsInLayer
-		);
+		this->gpuNeuralNet.forwardProp(this->layers);
 	}
 	// CPU
 	else				
