@@ -33,3 +33,26 @@ double ActivationFunction::reluDerivative(double x)
 {
 	return x >= 0.0 ? 1.0 : 0.0;
 }
+
+
+// ------ Activation functions for hidden/output layers ------
+
+double ActivationFunction::activateOutput(double x)
+{
+	return ActivationFunction::sigmoid(x);
+}
+
+double ActivationFunction::activateHidden(double x)
+{
+	return ActivationFunction::relu(x);
+}
+
+double ActivationFunction::outputDerivative(double x)
+{
+	return ActivationFunction::sigmoidDerivative(x);
+}
+
+double ActivationFunction::hiddenDerivative(double x)
+{
+	return ActivationFunction::reluDerivative(x);
+}

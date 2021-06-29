@@ -41,25 +41,26 @@ __global__ void cudaForwardProp(
 			// Go through each neuron from the last layer
 			for (int n = 0; n < neuronsPerLayer[l - 1]; ++n)
 			{
-				neuronOutputs[layerIndexStride + id] += 
-					// Output value
-					neuronOutputs[lastLayerIndexStride + n] * 
-					// Weight
+				double outVal = neuronOutputs[lastLayerIndexStride + n];
+				double weightVal = 
 					neuronWeights[
 						lastLayerWeightStride +
 						(neuronsPerLayer[l] - 1) * n + // Remove bias neuron
 						id
 					];
+
+				neuronOutputs[layerIndexStride + id] += outVal * weightVal;
 			}
 
-			// Activation functions
+			// Activation function for hidden layers
 			if (l < numLayers - 1)
 			{
 				neuronOutputs[layerIndexStride + id] =
 					activationFunctionHidden(neuronOutputs[layerIndexStride + id]);
 			}
-			// Let the CPU handle sigmoid
-			// (Takes 1 more second for 5000 training sets)
+			// Activation function for output layer
+			// (Let the CPU do it to keep precision,
+			// only takes +1 second for 5000 training sets)
 			/*else
 			{
 				neuronOutputs[layerIndexStride + id] =

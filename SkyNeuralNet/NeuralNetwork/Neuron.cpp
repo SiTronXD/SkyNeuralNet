@@ -39,10 +39,11 @@ Neuron::Neuron(double initialOutputValue, unsigned int numOutputWeights,
 		this->outputDeltaWeights.push_back(0.0);
 	}
 
+	// Choose derivative for activation function
 	if (isOutputNeuron)
-		this->activationFunctionDerivative = ActivationFunction::sigmoidDerivative;
+		this->activationFunctionDerivative = ActivationFunction::outputDerivative;
 	else
-		this->activationFunctionDerivative = ActivationFunction::reluDerivative;
+		this->activationFunctionDerivative = ActivationFunction::hiddenDerivative;
 }
 
 Neuron::~Neuron() { }

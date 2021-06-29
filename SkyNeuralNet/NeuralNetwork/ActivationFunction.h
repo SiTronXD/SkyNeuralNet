@@ -11,4 +11,11 @@ public:
 
 	static double relu(double x);
 	static double reluDerivative(double x);
+
+
+	static double activateOutput(double x);
+	static double activateHidden(double x);
+
+	static double outputDerivative(double x);
+	static double hiddenDerivative(double x);
 };

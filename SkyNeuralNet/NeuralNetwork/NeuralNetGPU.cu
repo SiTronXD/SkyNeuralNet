@@ -141,8 +141,9 @@ void NeuralNetGPU::forwardProp(
 		{
 			double currentResult = host_neuronOutputs[currentNeuronStride + j];
 
+			// Let the CPU calculate activation function for output layer
 			if (i == layers.size() - 1)
-				currentResult = ActivationFunction::sigmoid(currentResult);
+				currentResult = ActivationFunction::activateOutput(currentResult);
 
 			results.push_back(currentResult);
 		}

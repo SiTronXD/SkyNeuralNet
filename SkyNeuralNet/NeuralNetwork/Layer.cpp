@@ -26,10 +26,11 @@ Layer::Layer(unsigned int numNeurons, unsigned int numOutputWeights,
 		);
 	}
 
+	// Choose activation function
 	if (isOutputLayer)
-		this->activationFunction = ActivationFunction::sigmoid;
+		this->activationFunction = ActivationFunction::activateOutput;
 	else
-		this->activationFunction = ActivationFunction::relu;
+		this->activationFunction = ActivationFunction::activateHidden;
 }
 
 Layer::~Layer()
