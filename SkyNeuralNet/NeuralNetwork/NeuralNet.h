@@ -10,11 +10,17 @@ private:
 
 	NeuralNetGPU gpuNeuralNet;
 
+	bool useGPU;
+
 	void calcOutputLayerGradients(const std::vector<double>& expectedValues);
 	void calcHiddenLayerGradients(const std::vector<double>& expectedValues);
 	void updateWeights();
 
-	bool useGPU;
+	const void getNeuronInfo(
+		unsigned int& numNeurons,
+		unsigned int& numWeights,
+		unsigned int& maxNumNeuronsInLayer
+	) const;
 
 public:
 	NeuralNet(const std::vector<unsigned int>& neuronPerLayer);

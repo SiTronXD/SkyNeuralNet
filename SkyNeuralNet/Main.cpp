@@ -26,6 +26,7 @@ int main()
 	// Catch memory leaks
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 
+	// XOR neural network
 	std::vector<unsigned int> neuronsPerLayer{ 2, 4, 1 };
 	NeuralNet nn(neuronsPerLayer);
 
@@ -67,6 +68,7 @@ int main()
 		trainer.readLine(readValues);
 	}
 
+	// Neural network for recognizing images of numbers
 	/*std::vector<unsigned int> neuronsPerLayer{ 784, 100, 10 };
 	NeuralNet nn(neuronsPerLayer);
 

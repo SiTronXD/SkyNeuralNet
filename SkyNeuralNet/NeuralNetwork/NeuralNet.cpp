@@ -1,4 +1,5 @@
 #include "NeuralNet.h"
+#include <iostream>
 #include <cmath>
 
 void NeuralNet::calcOutputLayerGradients(const std::vector<double>& expectedValues)
@@ -29,6 +30,34 @@ void NeuralNet::updateWeights()
 		Layer* nextLayer = this->layers[i + 1];
 
 		currentLayer->updateAllWeights(nextLayer);
+	}
+}
+
+const void NeuralNet::getNeuronInfo(
+	unsigned int& numNeurons, 
+	unsigned int& numWeights, 
+	unsigned int& maxNumNeuronsInLayer
+) const
+{
+	numNeurons = 0;
+	numWeights = 0;
+	maxNumNeuronsInLayer = 0;
+
+	for (int i = 0; i < this->layers.size(); ++i)
+	{
+		std::vector<Neuron*>& currentNeurons = this->layers[i]->getNeurons();
+		unsigned int currentNumNeurons = currentNeurons.size();
+
+		// Number of neurons
+		numNeurons += currentNumNeurons;
+
+		// Max number of neurons in layer
+		if (currentNumNeurons > maxNumNeuronsInLayer)
+			maxNumNeuronsInLayer = currentNumNeurons;
+
+		// Number of weights
+		for (int j = 0; j < currentNeurons.size(); ++j)
+			numWeights += currentNeurons[j]->getWeights().size();
 	}
 }
 
@@ -65,23 +94,34 @@ NeuralNet::~NeuralNet()
 		delete this->layers[i];
 	this->layers.clear();
 
-	//this->gpuNeuralNet.release();
+	this->gpuNeuralNet.release();
 }
 
 // Calculate output values in each layer
 void NeuralNet::forwardProp(std::vector<double>& inputValues)
 {
+	// Manually set output values in the input layer
+	this->layers[0]->setAllOutputs(inputValues);
+
 	// CUDA
 	if (this->useGPU)	
 	{
-		this->gpuNeuralNet.forwardProp(inputValues);
+		// Get info
+		unsigned int numNeurons, numWeights, maxNumNeuronsInLayer;
+		this->getNeuronInfo(numNeurons, numWeights, maxNumNeuronsInLayer);
+
+		// Execute with CUDA
+		this->gpuNeuralNet.forwardProp(
+			this->layers, 
+			numNeurons,
+			numWeights,
+			maxNumNeuronsInLayer
+		);
 	}
 	// CPU
 	else				
 	{
-		// Manually set output values in the input layer
-		this->layers[0]->setAllOutputs(inputValues);
-
+		// Calculate each output value
 		for (int i = 1; i < this->layers.size(); ++i)
 		{
 			this->layers[i]->calcOutputs();
