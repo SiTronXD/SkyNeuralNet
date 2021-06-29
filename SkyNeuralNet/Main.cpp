@@ -137,7 +137,7 @@ int main()
 
 		std::cout << "Answer: " << answer << std::endl;
 		std::cout << "Expected: " << expected << std::endl;
-		std::cout << "Error: " << nn.getError(expectedOutputForBackprop) << std::endl;
+		std::cout << "Error: " << nn.calcError(expectedOutputForBackprop) << std::endl;
 		std::cout << "CorrectTimes: " << numCorrect << std::endl;
 		std::cout << "NumLastCorrect: " << numLastCorrect << std::endl;
 

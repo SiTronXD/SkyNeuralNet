@@ -77,13 +77,3 @@ void Trainer::readLine(std::vector<std::string>& foundWords)
 {
 	this->trainingData.readLine(foundWords);
 }
-
-const std::vector<double>& Trainer::getImgAsVector() const
-{
-	return this->trainingData.getImgAsVector();
-}
-
-const std::vector<double>& Trainer::getImgAnswer() const
-{
-	return this->imgAnswer;
-}

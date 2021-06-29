@@ -105,5 +105,3 @@ void Layer::updateAllWeights(Layer* nextLayer)
 	for (int i = 0; i < this->neurons.size(); ++i)
 		this->neurons[i]->updateWeights(nextLayer);
 }
-
-std::vector<Neuron*>& Layer::getNeurons() { return this->neurons; }

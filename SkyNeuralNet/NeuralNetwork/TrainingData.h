@@ -34,5 +34,6 @@ public:
 		return (stat(name.c_str(), &buffer) == 0);
 	}
 
-	const std::vector<double>& getImgAsVector() const;
+	inline const std::vector<double>& getImgAsVector() const 
+		{ return this->imgArray; }
 };

@@ -54,7 +54,7 @@ __global__ void cudaForwardProp(
 			// Go through each neuron from the last layer
 			for (int n = 0; n < neuronsPerLayer[l - 1]; ++n)
 			{
-				double outVal = lastLayerOutputs[n];
+				double outVal = neuronOutputs[lastLayerIndexStride + n];
 				double weightVal = 
 					neuronWeights[
 						lastLayerWeightStride +

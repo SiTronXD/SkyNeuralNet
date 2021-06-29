@@ -78,8 +78,3 @@ void TrainingData::readLine(std::vector<std::string>& foundWords)
 	while (ss >> word)
 		foundWords.push_back(word);
 }
-
-const std::vector<double>& TrainingData::getImgAsVector() const
-{
-	return this->imgArray;
-}

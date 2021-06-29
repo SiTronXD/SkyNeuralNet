@@ -185,7 +185,7 @@ void NeuralNet::setUseGPU(bool useGPU)
 	}
 }
 
-double NeuralNet::getError(const std::vector<double>& expectedValues) const
+double NeuralNet::calcError(const std::vector<double>& expectedValues) const
 {
 	// Calculate error (using "Root Mean Square Error")
 	double error = 0.0;

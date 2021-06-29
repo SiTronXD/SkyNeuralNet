@@ -122,7 +122,7 @@ void NeuralNetGPU::forwardProp(std::vector<Layer*>& layers)
 	);
 
 	// ----- Execute on GPU -----
-	cudaForwardProp<<<1, maxNumNeuronsInLayer >>>(
+	cudaForwardProp<<<1, maxNumNeuronsInLayer>>>(
 		devi_neuronOutputs, 
 		devi_neuronWeights,
 		devi_neuronsPerLayer,

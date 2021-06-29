@@ -86,10 +86,3 @@ void Neuron::updateWeights(Layer* nextLayer)
 		this->outputWeights[i] += newDeltaWeight;
 	}
 }
-
-double Neuron::getOutputValue() const { return this->outputValue; }
-double Neuron::getOutputWeight(int index) const { return this->outputWeights[index]; }
-double Neuron::getGradient() const { return this->gradient; }
-
-std::vector<double>& Neuron::getWeights() { return this->outputWeights; }
-std::vector<double>& Neuron::getDeltaWeights() { return this->outputDeltaWeights; }

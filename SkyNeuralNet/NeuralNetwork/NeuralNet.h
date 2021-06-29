@@ -40,5 +40,5 @@ public:
 
 	void setUseGPU(bool useGPU);
 
-	double getError(const std::vector<double>& expectedValues) const;
+	double calcError(const std::vector<double>& expectedValues) const;
 };

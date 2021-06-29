@@ -34,10 +34,10 @@ public:
 	void setOutputValue(double outputValue);
 	void updateWeights(Layer* previousLayer);
 
-	double getOutputValue() const;
-	double getOutputWeight(int index) const;
-	double getGradient() const;
+	inline const double& getOutputValue() const { return this->outputValue; }
+	inline const double& getOutputWeight(int index) const { return this->outputWeights[index]; }
+	inline const double& getGradient() const { return this->gradient; }
 
-	std::vector<double>& getWeights();
-	std::vector<double>& getDeltaWeights();
+	inline std::vector<double>& getWeights() { return this->outputWeights; };
+	inline std::vector<double>& getDeltaWeights() { return this->outputDeltaWeights; }
 };

@@ -23,5 +23,5 @@ public:
 	void calcOutputNeuronGradients(const std::vector<double>& expectedValues);
 	void updateAllWeights(Layer* nextLayer);
 
-	std::vector<Neuron*>& getNeurons();
+	inline std::vector<Neuron*>& getNeurons() { return this->neurons; }
 };
