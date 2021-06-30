@@ -1,6 +1,7 @@
 #include "NeuralNet.h"
 #include <iostream>
 #include <cmath>
+#include <fstream>
 
 // Execute forward propagation with CUDA
 void NeuralNet::executeCudaForwardProp()
@@ -155,7 +156,7 @@ void NeuralNet::getOutputs(std::vector<double>& outputValues)
 	std::vector<Neuron*>& outputNeurons = this->layers.back()->getNeurons();
 
 	// Save output values in given vector
-	for (int i = 0; i < outputNeurons.size(); ++i)
+	for (int i = 0; i < outputNeurons.size() - 1; ++i)
 		outputValues.push_back(outputNeurons[i]->getOutputValue());
 }
 
@@ -183,6 +184,51 @@ void NeuralNet::setUseGPU(bool useGPU)
 	{
 		this->forwardPropExecutionFunction = &NeuralNet::executeCPUForwardProp;
 	}
+}
+
+void NeuralNet::outputNeuralNetToFile(const std::string outputPath)
+{
+	std::ofstream outputFile;
+
+	outputFile.open(outputPath);
+
+
+	// Number of layers
+	outputFile << "NumLayers: " << this->layers.size() << std::endl;
+
+	// Number of neurons per layer (ignore bias neurons)
+	outputFile << "NumNeuronsPerLayer: ";
+	for (int i = 0; i < this->layers.size(); ++i)
+	{
+		outputFile << this->layers[i]->getNeurons().size() - 1 << " ";
+	}
+	outputFile << std::endl << std::endl;
+	outputFile << "# <layerIndex> <neuronIndex> <weightIndex> <value>" << std::endl;
+
+	// Weights
+	for (int i = 0; i < this->layers.size(); ++i)
+	{
+		std::vector<Neuron*> neurons = this->layers[i]->getNeurons();
+
+		for (int j = 0; j < neurons.size(); ++j)
+		{
+			std::vector<double> weights = neurons[j]->getWeights();
+
+			for (int k = 0; k < weights.size(); ++k)
+			{
+				outputFile << i << " " << j << " " << k << " " << 
+					weights[k];
+
+				// New line, if not last
+				if (!(i == this->layers.size() - 1 - 1 && 
+					j == neurons.size() - 1 && 
+					k == weights.size() - 1))
+					outputFile << std::endl;
+			}
+		}
+	}
+
+	outputFile.close();
 }
 
 double NeuralNet::calcError(const std::vector<double>& expectedValues) const

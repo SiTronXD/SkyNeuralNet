@@ -1,5 +1,6 @@
 #pragma once
 
+#include <string>
 #include "Layer.h"
 #include "NeuralNetGPU.cuh"
 
@@ -39,6 +40,9 @@ public:
 		const std::vector<double>& newWeights);
 
 	void setUseGPU(bool useGPU);
+	void outputNeuralNetToFile(const std::string outputPath);
 
 	double calcError(const std::vector<double>& expectedValues) const;
+
+	inline std::vector<Layer*>& getLayers() { return this->layers; }
 };

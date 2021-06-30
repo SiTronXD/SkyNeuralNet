@@ -111,7 +111,6 @@ int main()
 
 		// Read output
 		nn.getOutputs(outputValues);
-		outputValues.pop_back();
 		std::string answer = getAnswer(outputValues);
 		std::string expected = getAnswer(expectedOutputForBackprop);
 
@@ -160,6 +159,9 @@ int main()
 	std::cout << "Time: " << seconds / 60 << " minutes " 
 		<< seconds % 60 << " seconds" << " (" << totalTime 
 		<< " milliseconds)" << std::endl;
+
+	// Output topology, weights and biases to file
+	nn.outputNeuralNetToFile("E:/JavaProjs/SkyNeuralNetUsageExample/SkyNeuralNetUsage/android/assets/SkyNeuralNetSettings.ini");
 
 	getchar();
 
