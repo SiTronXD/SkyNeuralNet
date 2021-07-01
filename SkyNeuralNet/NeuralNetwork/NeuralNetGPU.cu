@@ -19,7 +19,13 @@ void NeuralNetGPU::safeCopy(const cudaError_t& error)
 }
 
 NeuralNetGPU::NeuralNetGPU()
-	: numNeurons(0), host_neuronOutputs(nullptr), devi_neuronOutputs(nullptr)
+	: numLayers(0), numNeurons(0), numWeights(0), maxNumNeuronsInLayer(0),
+	host_neuronOutputs(nullptr), devi_neuronOutputs(nullptr),
+	host_neuronWeights(nullptr), devi_neuronWeights(nullptr),
+	host_neuronsPerLayer(nullptr), devi_neuronsPerLayer(nullptr),
+
+	host_neuronGradients(nullptr),
+	devi_neuronGradients(nullptr)
 {
 }
 
@@ -56,6 +62,10 @@ void NeuralNetGPU::setupTrainingSession(
 	for(int i = 0; i < this->numLayers; ++i)
 		host_neuronsPerLayer[i] = layers[i]->getNeurons().size();
 
+	// All gradients
+	this->host_neuronGradients = new double[this->numNeurons];
+	this->devi_neuronGradients = nullptr;
+
 	// Allocate variables on GPU
 	this->safeMalloc(
 		cudaMalloc(&devi_neuronOutputs, sizeof(double) * this->numNeurons)
@@ -65,6 +75,10 @@ void NeuralNetGPU::setupTrainingSession(
 	);
 	this->safeMalloc(
 		cudaMalloc(&devi_neuronsPerLayer, sizeof(int) * this->numLayers)
+	);
+
+	this->safeMalloc(
+		cudaMalloc(&devi_neuronGradients, sizeof(double) * this->numNeurons)
 	);
 
 	// Copy over number of neurons per layer, 
@@ -81,7 +95,7 @@ void NeuralNetGPU::setupTrainingSession(
 
 void NeuralNetGPU::forwardProp(std::vector<Layer*>& layers)
 {
-	// Neuron outputs, weights
+	// Get neuron outputs, weights
 	unsigned int currentNeuronIndex = 0;
 	unsigned int currentWeightIndex = 0;
 	for (int i = 0; i < layers.size(); ++i)
@@ -93,39 +107,39 @@ void NeuralNetGPU::forwardProp(std::vector<Layer*>& layers)
 		{
 			// Insert output values 
 			// (only the first layer actually matters here)
-			host_neuronOutputs[currentNeuronIndex++] = layerNeurons[j]->getOutputValue();
+			this->host_neuronOutputs[currentNeuronIndex++] = layerNeurons[j]->getOutputValue();
 		
 			// Loop through weights
 			std::vector<double>& currentWeights = layerNeurons[j]->getWeights();
 			for (int k = 0; k < currentWeights.size(); ++k)
 			{
 				// Insert weights
-				host_neuronWeights[currentWeightIndex++] = currentWeights[k];
+				this->host_neuronWeights[currentWeightIndex++] = currentWeights[k];
 			}
 		}
 	}
 	this->safeCopy(
 		cudaMemcpy(
-			devi_neuronOutputs,
-			host_neuronOutputs,
-			sizeof(double) * numNeurons,
+			this->devi_neuronOutputs,
+			this->host_neuronOutputs,
+			sizeof(double) * this->numNeurons,
 			cudaMemcpyHostToDevice
 		)
 	);
 	this->safeCopy(
 		cudaMemcpy(
-			devi_neuronWeights,
-			host_neuronWeights,
-			sizeof(double) * numWeights,
+			this->devi_neuronWeights,
+			this->host_neuronWeights,
+			sizeof(double) * this->numWeights,
 			cudaMemcpyHostToDevice
 		)
 	);
 
 	// ----- Execute on GPU -----
-	cudaForwardProp<<<1, maxNumNeuronsInLayer>>>(
-		devi_neuronOutputs, 
-		devi_neuronWeights,
-		devi_neuronsPerLayer,
+	cudaForwardProp<<<1, this->maxNumNeuronsInLayer>>>(
+		this->devi_neuronOutputs, 
+		this->devi_neuronWeights,
+		this->devi_neuronsPerLayer,
 		(int) this->numLayers
 	);
 	cudaDeviceSynchronize();
@@ -133,9 +147,9 @@ void NeuralNetGPU::forwardProp(std::vector<Layer*>& layers)
 	// Extract results
 	this->safeCopy(
 		cudaMemcpy(
-			host_neuronOutputs,
-			devi_neuronOutputs,
-			sizeof(double) * numNeurons,
+			this->host_neuronOutputs,
+			this->devi_neuronOutputs,
+			sizeof(double) * this->numNeurons,
 			cudaMemcpyDeviceToHost
 		)
 	);
@@ -163,15 +177,85 @@ void NeuralNetGPU::forwardProp(std::vector<Layer*>& layers)
 	}
 }
 
+void NeuralNetGPU::backProp(
+	std::vector<Layer*>& layers,
+	const std::vector<double>& expectedValues
+)
+{
+	// Get gradients
+
+	// Loop through layers
+	unsigned int neuronIndex = 0;
+	for (int i = 0; i < layers.size(); ++i)
+	{
+		std::vector<Neuron*>& currentNeurons = layers[i]->getNeurons();
+
+		// Loop through neurons
+		for (int j = 0; j < currentNeurons.size(); ++j)
+		{
+			// Insert gradients
+			this->host_neuronGradients[neuronIndex++] = currentNeurons[j]->getGradient();
+		}
+	}
+	this->safeCopy(
+		cudaMemcpy(
+			this->devi_neuronGradients,
+			this->host_neuronGradients,
+			sizeof(double) * this->numNeurons,
+			cudaMemcpyHostToDevice
+		)
+	);
+
+	// ----- Execute on GPU -----
+	cudaBackProp<<<1, this->maxNumNeuronsInLayer>>>(
+		// This is assuming outputs and weights
+		// doesn't change before back prop
+		this->devi_neuronOutputs,
+		this->devi_neuronWeights, 
+		this->devi_neuronGradients,
+		this->devi_neuronsPerLayer,
+		(int) this->numLayers
+	);
+	cudaDeviceSynchronize();
+
+	// Extract results
+	this->safeCopy(
+		cudaMemcpy(
+			this->host_neuronGradients,
+			this->devi_neuronGradients,
+			sizeof(double) * this->numNeurons,
+			cudaMemcpyDeviceToHost
+		)
+	);
+
+	// ----- Apply results to network -----
+	neuronIndex = 0;
+	for (int i = 0; i < layers.size(); ++i)
+	{
+		std::vector<Neuron*>& currentNeurons = layers[i]->getNeurons();
+
+		for (int j = 0; j < currentNeurons.size(); ++j)
+		{
+			currentNeurons[j]->setGradient(
+				this->host_neuronGradients[neuronIndex++]
+			);
+		}
+	}
+}
+
 void NeuralNetGPU::releaseTrainingSession()
 {
-	delete[] host_neuronOutputs;
-	delete[] host_neuronWeights;
-	delete[] host_neuronsPerLayer;
+	delete[] this->host_neuronOutputs;
+	delete[] this->host_neuronWeights;
+	delete[] this->host_neuronsPerLayer;
 
-	cudaFree(devi_neuronOutputs);
-	cudaFree(devi_neuronWeights);
-	cudaFree(devi_neuronsPerLayer);
+	delete[] this->host_neuronGradients;
+
+	cudaFree(this->devi_neuronWeights);
+	cudaFree(this->devi_neuronOutputs);
+	cudaFree(this->devi_neuronsPerLayer);
+
+	cudaFree(this->devi_neuronGradients);
 
 	cudaDeviceReset();
 }

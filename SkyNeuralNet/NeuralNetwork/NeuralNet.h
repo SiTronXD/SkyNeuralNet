@@ -14,9 +14,15 @@ private:
 	bool useGPU;
 
 	void(NeuralNet::*forwardPropExecutionFunction)();
+	void(NeuralNet::*backPropExecutionFunction)(const std::vector<double>& expectedValues);
 
+	// Forward prop CUDA/CPU
 	void executeCudaForwardProp();
 	void executeCPUForwardProp();
+
+	// Back prop CUDA/CPU
+	void executeCudaBackProp(const std::vector<double>& expectedValues);
+	void executeCPUBackProp(const std::vector<double>& expectedValues);
 
 	void calcOutputLayerGradients(const std::vector<double>& expectedValues);
 	void calcHiddenLayerGradients(const std::vector<double>& expectedValues);

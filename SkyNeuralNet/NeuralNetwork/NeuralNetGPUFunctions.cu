@@ -5,14 +5,24 @@ __device__ double activationFunctionHidden(double x)
 	// Relu
 	return fmax(0.0, x);
 }
+__device__ double activationFunctionDerivativeHidden(double x)
+{
+	return x >= 0.0 ? 1.0 : 0.0;
+}
 
 __device__ double activationFunctionOutput(double x)
 {
 	// Sigmoid
 
-	// exp() gives slightly different results when comparing
-	// CUDA exp() and std::exp()
+	// As expected, exp() gives slightly different 
+	// results when comparing CUDA exp() and std::exp()
 	return 1.0 / (1.0 + exp(-x));
+}
+__device__ double activationFunctionDerivativeOutput(double x)
+{
+	double s = activationFunctionOutput(x);
+
+	return s * (1.0 - s);
 }
 
 #define MAX_BLOCKING_NEURON_SIZE 1024
@@ -88,6 +98,61 @@ __global__ void cudaForwardProp(
 
 		lastLayerWeightStride += (neuronsPerLayer[l - 1]) * (neuronsPerLayer[l] - 1);
 		lastLayerIndexStride = layerIndexStride;
+
+		__syncthreads();
+	}
+}
+
+__global__ void cudaBackProp(
+	double* neuronOutputs,
+	double* neuronWeights,
+	double* neuronGradients,
+	int* neuronsPerLayer,
+	int numLayers
+)
+{
+	int id = blockIdx.x * blockDim.x + threadIdx.x;
+
+	// Stride points to last hidden layer
+	int layerStride = 0;
+	int nextLayerStride = 0;
+	for (int i = 0; i < numLayers - 1 - 1; ++i)
+		layerStride += neuronsPerLayer[i];
+	nextLayerStride = layerStride + neuronsPerLayer[numLayers - 1 - 1];
+
+	// Stride points to last hidden layer weights
+	int weightStride = 0;
+	for (int i = 0; i < numLayers - 1 - 1; ++i)
+	{
+		// += <number of neurons> * <number of weights for each neuron>
+		weightStride += neuronsPerLayer[i] * (neuronsPerLayer[i + 1] - 1);
+	}
+
+	// Go through each hidden layer, back to front, 
+	// starting from the last hidden layer
+	for (int i = numLayers - 1 - 1; i > 0; --i)
+	{
+		// Make sure this thread can work
+		if (id < neuronsPerLayer[i])
+		{
+			// Sum weight gradients
+			double swg = 0.0;
+
+			for (int j = 0; j < neuronsPerLayer[i + 1] - 1; ++j)
+			{
+				swg +=
+					neuronWeights[weightStride + id + j] *
+					neuronGradients[nextLayerStride + j];
+			}
+
+			neuronGradients[layerStride + id] =
+				swg *
+				activationFunctionDerivativeHidden(neuronOutputs[layerStride + id]);
+		}
+
+		nextLayerStride = layerStride;
+		layerStride -= neuronsPerLayer[i - 1];
+		weightStride -= neuronsPerLayer[i - 1] * (neuronsPerLayer[i] - 1);
 
 		__syncthreads();
 	}

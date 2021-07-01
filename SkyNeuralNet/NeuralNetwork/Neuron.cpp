@@ -50,9 +50,9 @@ Neuron::~Neuron() { }
 
 void Neuron::calcHiddenGradient(const std::vector<Neuron*>& nextLayerNeurons)
 {
-	double deltaOfWeights = this->sumWeightGradients(nextLayerNeurons);
+	double swg = this->sumWeightGradients(nextLayerNeurons);
 
-	this->calcGradient(deltaOfWeights);
+	this->calcGradient(swg);
 }
 
 void Neuron::calcOutputGradient(double targetValue)
@@ -65,6 +65,11 @@ void Neuron::calcOutputGradient(double targetValue)
 void Neuron::setOutputValue(double outputValue)
 {
 	this->outputValue = outputValue;
+}
+
+void Neuron::setGradient(double gradientValue)
+{
+	this->gradient = gradientValue;
 }
 
 void Neuron::updateWeights(Layer* nextLayer)

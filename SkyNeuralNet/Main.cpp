@@ -29,6 +29,7 @@ int main()
 	// XOR neural network
 	/*std::vector<unsigned int> neuronsPerLayer{ 2, 4, 1 };
 	NeuralNet nn(neuronsPerLayer);
+	//nn.setUseGPU(false);
 
 	Trainer trainer;
 	trainer.loadFile("XORTrainingData.txt");
@@ -59,7 +60,7 @@ int main()
 		// Read output
 		nn.getOutputs(outputValues);
 		std::cout << "Answer: " << outputValues[0] << std::endl;
-		std::cout << "Error: " << nn.getError(expectedOutputForBackprop) << std::endl;
+		std::cout << "Error: " << nn.calcError(expectedOutputForBackprop) << std::endl;
 		std::cout << std::endl;
 
 		// Train

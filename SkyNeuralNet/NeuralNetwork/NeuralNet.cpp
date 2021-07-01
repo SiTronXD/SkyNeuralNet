@@ -17,6 +17,32 @@ void NeuralNet::executeCPUForwardProp()
 		this->layers[i]->calcOutputs();
 }
 
+// Execute back propagation with CUDA
+void NeuralNet::executeCudaBackProp(const std::vector<double>& expectedValues)
+{
+	// Calculate gradients in output layer (on the CPU, to keep precision)
+	this->calcOutputLayerGradients(expectedValues);
+
+	// Calculate gradients in hidden layers (in CUDA)
+	this->gpuNeuralNet.backProp(this->layers, expectedValues);
+
+	// Finally update weights
+	this->updateWeights();
+}
+
+// Execute back propagation on the CPU
+void NeuralNet::executeCPUBackProp(const std::vector<double>& expectedValues)
+{
+	// Calculate gradients in output layer
+	this->calcOutputLayerGradients(expectedValues);
+
+	// Calculate gradients in hidden layers
+	this->calcHiddenLayerGradients(expectedValues);
+
+	// Finally update weights
+	this->updateWeights();
+}
+
 void NeuralNet::calcOutputLayerGradients(const std::vector<double>& expectedValues)
 {
 	// Output layer
@@ -138,14 +164,8 @@ void NeuralNet::forwardProp(std::vector<double>& inputValues)
 
 void NeuralNet::backProp(const std::vector<double>& expectedValues)
 {
-	// Calculate gradients in output layer
-	this->calcOutputLayerGradients(expectedValues);
-
-	// Calculate gradients in hidden layers
-	this->calcHiddenLayerGradients(expectedValues);
-
-	// Finally update weights
-	this->updateWeights();
+	// Execute
+	(this->*backPropExecutionFunction)(expectedValues);
 }
 
 void NeuralNet::getOutputs(std::vector<double>& outputValues)
@@ -178,11 +198,13 @@ void NeuralNet::setUseGPU(bool useGPU)
 	if (this->useGPU)
 	{
 		this->forwardPropExecutionFunction = &NeuralNet::executeCudaForwardProp;
+		this->backPropExecutionFunction = &NeuralNet::executeCudaBackProp;
 	}
 	// CPU
 	else
 	{
 		this->forwardPropExecutionFunction = &NeuralNet::executeCPUForwardProp;
+		this->backPropExecutionFunction = &NeuralNet::executeCPUBackProp;
 	}
 }
 

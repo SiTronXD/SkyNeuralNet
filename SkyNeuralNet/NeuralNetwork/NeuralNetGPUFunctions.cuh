@@ -10,3 +10,11 @@ __global__ void cudaForwardProp(
 	int* neuronsPerLayer,
 	int numLayers
 );
+
+__global__ void cudaBackProp(
+	double* neuronOutputs,
+	double* neuronWeights,
+	double* neuronGradients,
+	int* neuronsPerLayer,
+	int numLayers
+);

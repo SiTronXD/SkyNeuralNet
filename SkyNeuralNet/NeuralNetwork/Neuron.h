@@ -32,6 +32,7 @@ public:
 	void calcHiddenGradient(const std::vector<Neuron*>& nextLayerNeurons);
 	void calcOutputGradient(double targetValue);
 	void setOutputValue(double outputValue);
+	void setGradient(double gradientValue);
 	void updateWeights(Layer* previousLayer);
 
 	inline const double& getOutputValue() const { return this->outputValue; }
