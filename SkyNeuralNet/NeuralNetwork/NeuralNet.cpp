@@ -23,11 +23,9 @@ void NeuralNet::executeCudaBackProp(const std::vector<double>& expectedValues)
 	// Calculate gradients in output layer (on the CPU, to keep precision)
 	this->calcOutputLayerGradients(expectedValues);
 
-	// Calculate gradients in hidden layers (in CUDA)
+	// Calculate gradients in hidden layers 
+	// and update weights (in CUDA)
 	this->gpuNeuralNet.backProp(this->layers, expectedValues);
-
-	// Finally update weights
-	this->updateWeights();
 }
 
 // Execute back propagation on the CPU
@@ -65,7 +63,7 @@ void NeuralNet::updateWeights()
 {
 	// Go through all layers, except output layer,
 	// and update all weights
-	for (int i = this->layers.size() - 2; i >= 0; --i)
+	for (int i = 0; i < this->layers.size() - 1; ++i)
 	{
 		Layer* currentLayer = this->layers[i];
 		Layer* nextLayer = this->layers[i + 1];

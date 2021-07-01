@@ -25,7 +25,7 @@ __device__ double activationFunctionDerivativeOutput(double x)
 	return s * (1.0 - s);
 }
 
-#define MAX_BLOCKING_NEURON_SIZE 1024
+#define MAX_BLOCKING_SIZE 1024
 
 __global__ void cudaForwardProp(
 	double* neuronOutputs,
@@ -34,7 +34,7 @@ __global__ void cudaForwardProp(
 	int numLayers
 )
 {
-	__shared__ double lastLayerOutputs[MAX_BLOCKING_NEURON_SIZE];
+	__shared__ double lastLayerOutputs[MAX_BLOCKING_SIZE];
 
 	int id = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -106,12 +106,17 @@ __global__ void cudaForwardProp(
 __global__ void cudaBackProp(
 	double* neuronOutputs,
 	double* neuronWeights,
+	double* neuronDeltaWeights,
 	double* neuronGradients,
 	int* neuronsPerLayer,
-	int numLayers
+	int numLayers,
+	float eta,
+	float alpha
 )
 {
 	int id = blockIdx.x * blockDim.x + threadIdx.x;
+
+	// ----- Calculate gradients in hidden layers -----
 
 	// Stride points to last hidden layer
 	int layerStride = 0;
@@ -140,8 +145,9 @@ __global__ void cudaBackProp(
 
 			for (int j = 0; j < neuronsPerLayer[i + 1] - 1; ++j)
 			{
+				// += <weight to next neuron> * <next neuron gradient>
 				swg +=
-					neuronWeights[weightStride + id + j] *
+					neuronWeights[weightStride + (neuronsPerLayer[i + 1] - 1) * id + j] *
 					neuronGradients[nextLayerStride + j];
 			}
 
@@ -153,6 +159,44 @@ __global__ void cudaBackProp(
 		nextLayerStride = layerStride;
 		layerStride -= neuronsPerLayer[i - 1];
 		weightStride -= neuronsPerLayer[i - 1] * (neuronsPerLayer[i] - 1);
+
+		__syncthreads();
+	}
+
+	// ----- Update weights -----
+
+
+	//////////////////////// CONTINUE WORK FROM HERE
+
+	// Go through all layers, except output layer
+	for (int i = 0; i < numLayers - 1; ++i)
+	{
+		// Make sure this thread can work
+		if (id < neuronsPerLayer[i])
+		{
+			// Go through weights
+			for (int j = 0; j < neuronsPerLayer[i + 1] - 1; ++j)
+			{
+				int weightIndex = 
+					weightStride +
+					(neuronsPerLayer[i + 1] - 1) * j + // Ignore bias neuron
+					id;
+
+				double oldDeltaWeight = neuronDeltaWeights[weightIndex];
+
+				double newDeltaWeight =
+					eta * neuronOutputs[layerStride + id] * neuronGradients[nextLayerStride + j] +
+					alpha * oldDeltaWeight;
+
+				// Apply weight and delta weight
+				int neuronWeightIndex = 
+					layerStride + 
+					(neuronsPerLayer[i] - 1) * id + 
+					j;
+				neuronDeltaWeights[neuronWeightIndex] = newDeltaWeight;
+				neuronWeights[neuronWeightIndex] += newDeltaWeight;
+			}
+		}
 
 		__syncthreads();
 	}

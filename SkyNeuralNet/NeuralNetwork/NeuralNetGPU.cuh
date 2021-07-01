@@ -26,6 +26,9 @@ private:
 	double* host_neuronGradients;
 	double* devi_neuronGradients;
 
+	double* host_neuronDeltaWeights;
+	double* devi_neuronDeltaWeights;
+
 	void safeMalloc(const cudaError_t& error);
 	void safeCopy(const cudaError_t& error);
 

@@ -33,6 +33,7 @@ public:
 	void calcOutputGradient(double targetValue);
 	void setOutputValue(double outputValue);
 	void setGradient(double gradientValue);
+	void setWeight(int index, double newWeightValue, double newDeltaWeightValue);
 	void updateWeights(Layer* previousLayer);
 
 	inline const double& getOutputValue() const { return this->outputValue; }
@@ -41,4 +42,7 @@ public:
 
 	inline std::vector<double>& getWeights() { return this->outputWeights; };
 	inline std::vector<double>& getDeltaWeights() { return this->outputDeltaWeights; }
+
+	inline static const float& getETA() { return ETA; }
+	inline static const float& getALPHA() { return ALPHA; }
 };

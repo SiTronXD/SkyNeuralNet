@@ -72,6 +72,16 @@ void Neuron::setGradient(double gradientValue)
 	this->gradient = gradientValue;
 }
 
+void Neuron::setWeight(
+	int index, 
+	double newWeightValue, 
+	double newDeltaWeightValue
+)
+{
+	this->outputWeights[index] = newWeightValue;
+	this->outputDeltaWeights[index] = newDeltaWeightValue;
+}
+
 void Neuron::updateWeights(Layer* nextLayer)
 {
 	std::vector<Neuron*>& nextNeurons = nextLayer->getNeurons();
