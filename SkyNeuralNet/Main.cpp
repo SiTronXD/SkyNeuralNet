@@ -27,7 +27,7 @@ int main()
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 
 	// XOR neural network
-	std::vector<unsigned int> neuronsPerLayer{ 2, 4, 1 };
+	/*std::vector<unsigned int> neuronsPerLayer{ 2, 4, 1 };
 	NeuralNet nn(neuronsPerLayer);
 	//nn.setUseGPU(false);
 
@@ -65,13 +65,15 @@ int main()
 
 		// Train
 		nn.backProp(expectedOutputForBackprop);
-			
+
 		trainer.readLine(readValues);
-	}
+	}*/
 
 	// Neural network for recognizing images of numbers
-	/*std::vector<unsigned int> neuronsPerLayer{ 784, 100, 10 };
+	std::vector<unsigned int> neuronsPerLayer{ 784, 100, 10 };
 	NeuralNet nn(neuronsPerLayer);
+	nn.setUseGPUForwardProp(true);
+	nn.setUseGPUBackProp(false);
 
 	const int NUM_TRAINING_SETS = 5000;
 	Trainer trainer(NUM_TRAINING_SETS);
@@ -162,7 +164,7 @@ int main()
 		<< " milliseconds)" << std::endl;
 
 	// Output topology, weights and biases to file
-	nn.outputNeuralNetToFile("E:/JavaProjs/SkyNeuralNetUsageExample/SkyNeuralNetUsage/android/assets/SkyNeuralNetSettings.ini");*/
+	nn.outputNeuralNetToFile("E:/JavaProjs/SkyNeuralNetUsageExample/SkyNeuralNetUsage/android/assets/SkyNeuralNetSettings.ini");
 
 	getchar();
 

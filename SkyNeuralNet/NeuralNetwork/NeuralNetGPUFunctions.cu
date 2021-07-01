@@ -165,10 +165,10 @@ __global__ void cudaBackProp(
 
 	// ----- Update weights -----
 
-
-	//////////////////////// CONTINUE WORK FROM HERE
-
 	// Go through all layers, except output layer
+	nextLayerStride = neuronsPerLayer[0];
+	layerStride = 0;
+	weightStride = 0;
 	for (int i = 0; i < numLayers - 1; ++i)
 	{
 		// Make sure this thread can work
@@ -177,26 +177,25 @@ __global__ void cudaBackProp(
 			// Go through weights
 			for (int j = 0; j < neuronsPerLayer[i + 1] - 1; ++j)
 			{
-				int weightIndex = 
+				int weightIndex =
 					weightStride +
-					(neuronsPerLayer[i + 1] - 1) * j + // Ignore bias neuron
-					id;
+					(neuronsPerLayer[i + 1] - 1) * id + // Ignore bias neuron
+					j;
 
 				double oldDeltaWeight = neuronDeltaWeights[weightIndex];
-
 				double newDeltaWeight =
 					eta * neuronOutputs[layerStride + id] * neuronGradients[nextLayerStride + j] +
 					alpha * oldDeltaWeight;
 
 				// Apply weight and delta weight
-				int neuronWeightIndex = 
-					layerStride + 
-					(neuronsPerLayer[i] - 1) * id + 
-					j;
-				neuronDeltaWeights[neuronWeightIndex] = newDeltaWeight;
-				neuronWeights[neuronWeightIndex] += newDeltaWeight;
+				neuronDeltaWeights[weightIndex] = newDeltaWeight;
+				neuronWeights[weightIndex] += newDeltaWeight;
 			}
 		}
+
+		weightStride += neuronsPerLayer[i] * (neuronsPerLayer[i + 1] - 1);
+		layerStride = nextLayerStride;
+		nextLayerStride += neuronsPerLayer[i + 1];
 
 		__syncthreads();
 	}

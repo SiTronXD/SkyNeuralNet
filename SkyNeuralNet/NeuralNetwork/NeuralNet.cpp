@@ -101,7 +101,6 @@ const void NeuralNet::getNeuronInfo(
 }
 
 NeuralNet::NeuralNet(const std::vector<unsigned int>& neuronPerLayer)
-	: useGPU(true)
 {
 	this->setUseGPU(true);
 
@@ -190,18 +189,34 @@ void NeuralNet::setWeight(unsigned int layerIndex, unsigned int neuronIndex,
 
 void NeuralNet::setUseGPU(bool useGPU)
 {
-	this->useGPU = useGPU;
+	this->setUseGPUForwardProp(useGPU);
+	this->setUseGPUBackProp(useGPU);
+}
 
+void NeuralNet::setUseGPUForwardProp(bool useGPU)
+{
 	// CUDA
-	if (this->useGPU)
+	if (useGPU)
 	{
 		this->forwardPropExecutionFunction = &NeuralNet::executeCudaForwardProp;
-		this->backPropExecutionFunction = &NeuralNet::executeCudaBackProp;
 	}
 	// CPU
 	else
 	{
 		this->forwardPropExecutionFunction = &NeuralNet::executeCPUForwardProp;
+	}
+}
+
+void NeuralNet::setUseGPUBackProp(bool useGPU)
+{
+	// CUDA
+	if (useGPU)
+	{
+		this->backPropExecutionFunction = &NeuralNet::executeCudaBackProp;
+	}
+	// CPU
+	else
+	{
 		this->backPropExecutionFunction = &NeuralNet::executeCPUBackProp;
 	}
 }

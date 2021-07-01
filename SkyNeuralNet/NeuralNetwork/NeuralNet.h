@@ -11,8 +11,6 @@ private:
 
 	NeuralNetGPU gpuNeuralNet;
 
-	bool useGPU;
-
 	void(NeuralNet::*forwardPropExecutionFunction)();
 	void(NeuralNet::*backPropExecutionFunction)(const std::vector<double>& expectedValues);
 
@@ -46,6 +44,8 @@ public:
 		const std::vector<double>& newWeights);
 
 	void setUseGPU(bool useGPU);
+	void setUseGPUForwardProp(bool useGPU);
+	void setUseGPUBackProp(bool useGPU);
 	void outputNeuralNetToFile(const std::string outputPath);
 
 	double calcError(const std::vector<double>& expectedValues) const;
