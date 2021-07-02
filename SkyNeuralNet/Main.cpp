@@ -10,8 +10,8 @@ int main()
 	std::cout << "Started training...\n";
 
 	// startExampleXOR();
-	// startExampleImageRecognition(false);
-	startExampleImageRecognitionTestBench();
+	startExampleImageRecognition();
+	//startExampleImageRecognitionTestBench();
 	
 	getchar();
 

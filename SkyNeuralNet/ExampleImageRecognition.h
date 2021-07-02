@@ -6,14 +6,15 @@
 #include "NeuralNetwork/NeuralNet.h"
 #include "Trainer.h"
 
-void startExampleImageRecognition(bool printOnlyLastPass)
+void startExampleImageRecognition()
 {
 	// Neural network for recognizing images of numbers
 	std::vector<unsigned int> neuronsPerLayer{ 784, 100, 10 };
 	NeuralNet nn(neuronsPerLayer);
 	// nn.setUseGPU(false);
 
-	const int NUM_TRAINING_SETS = 5000;
+	const bool PRINT_ONLY_LAST_PASS = false;
+	const int NUM_TRAINING_SETS = 60000;
 	Trainer trainer(NUM_TRAINING_SETS);
 
 	std::vector<double> inputValues;
@@ -75,8 +76,8 @@ void startExampleImageRecognition(bool printOnlyLastPass)
 			lastCorrect.push_back(false);
 
 		// Print as one single string for faster output
-		if ((printOnlyLastPass && trainingPass == NUM_TRAINING_SETS) ||
-			!printOnlyLastPass)
+		if ((PRINT_ONLY_LAST_PASS && trainingPass == NUM_TRAINING_SETS) ||
+			!PRINT_ONLY_LAST_PASS)
 		{
 			std::cout << "Training pass: " + std::to_string(trainingPass) + "\n" +
 				"Answer: " + answer + "\n" +
@@ -92,7 +93,7 @@ void startExampleImageRecognition(bool printOnlyLastPass)
 		// Save and write time for this training pass
 		long endTrainingPassTime = std::clock();
 
-		if (!printOnlyLastPass)
+		if (!PRINT_ONLY_LAST_PASS)
 		{
 			std::cout << "Time for pass: " +
 				std::to_string(endTrainingPassTime - startTrainingPassTime) +
@@ -113,7 +114,7 @@ void startExampleImageRecognition(bool printOnlyLastPass)
 		<< " milliseconds)" << std::endl;
 
 	// Output topology, weights and biases to file
-	nn.outputNeuralNetToFile("E:/JavaProjs/SkyNeuralNetUsageExample/SkyNeuralNetUsage/android/assets/SkyNeuralNetSettings.ini");
+	//nn.outputNeuralNetToFile("E:/JavaProjs/SkyNeuralNetUsageExample/SkyNeuralNetUsage/android/assets/SkyNeuralNetSettings.ini");
 }
 
 void startExampleImageRecognitionTestBench()
@@ -124,7 +125,7 @@ void startExampleImageRecognitionTestBench()
 	// nn.setUseGPU(false);
 
 	// Best so far: 
-	// (ETA: 0.05, ALPHA: 0.15, 51 000 correct, 91 correct last 100)
+	// (ETA: 0.04, ALPHA: 0.15, 52 045 correct, 90 correct last 100)
 	for (float eta = 0.03f; eta <= 0.055f; eta += 0.01f)
 	{
 		for (float alpha = 0.05f; alpha <= 0.16f; alpha += 0.05f)

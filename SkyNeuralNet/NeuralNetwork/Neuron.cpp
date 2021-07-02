@@ -2,8 +2,10 @@
 #include "ActivationFunction.h"
 #include "Layer.h"
 
-float Neuron::ETA = 0.15;	// 0.15
-float Neuron::ALPHA = 0.5;	// 0.5
+// Best for XOR example: (ETA: 0.15, ALPHA: 0.5)
+
+float Neuron::ETA = 0.04;
+float Neuron::ALPHA = 0.15;
 
 // ETA: 0.01, ALPHA: 0.35, 5000 sets, Last 100 correct: 84, Correct: 2815
 // ETA: 0.02, ALPHA: 0.35, 5000 sets, Last 100 correct: 85, Correct: 3490
