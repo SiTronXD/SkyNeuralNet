@@ -32,12 +32,32 @@ NeuralNetGPU::NeuralNetGPU()
 	devi_thisNeuronIndices(nullptr),
 	host_nextNeuronIndices(nullptr),
 	devi_nextNeuronIndices(nullptr)
+{ }
+
+NeuralNetGPU::~NeuralNetGPU() 
 {
+	delete[] this->host_neuronOutputs;
+	delete[] this->host_neuronWeights;
+	delete[] this->host_neuronsPerLayer;
+
+	delete[] this->host_neuronGradients;
+	delete[] this->host_neuronDeltaWeights;
+	delete[] this->host_thisNeuronIndices;
+	delete[] this->host_nextNeuronIndices;
+
+	cudaFree(this->devi_neuronOutputs);
+	cudaFree(this->devi_neuronWeights);
+	cudaFree(this->devi_neuronsPerLayer);
+
+	cudaFree(this->devi_neuronGradients);
+	cudaFree(this->devi_neuronDeltaWeights);
+	cudaFree(this->devi_thisNeuronIndices);
+	cudaFree(this->devi_nextNeuronIndices);
+
+	cudaDeviceReset();
 }
 
-NeuralNetGPU::~NeuralNetGPU() { }
-
-void NeuralNetGPU::setupTrainingSession(
+void NeuralNetGPU::allocateTrainingSession(
 	std::vector<Layer*>& layers,
 	const unsigned int numNeurons,
 	const unsigned int numWeights,
@@ -60,32 +80,9 @@ void NeuralNetGPU::setupTrainingSession(
 	this->host_neuronWeights = new double[this->numWeights]{ };
 	this->devi_neuronWeights = nullptr;
 
-	// Insert initial weights
-	unsigned int currentWeightIndex = 0;
-	for (int i = 0; i < layers.size(); ++i)
-	{
-		// Loop through neurons
-		std::vector<Neuron*>& layerNeurons = layers[i]->getNeurons();
-		for (int j = 0; j < layerNeurons.size(); ++j)
-		{
-			// Loop through weights
-			std::vector<double>& currentWeights = layerNeurons[j]->getWeights();
-			for (int k = 0; k < currentWeights.size(); ++k)
-			{
-				// Insert weights
-				this->host_neuronWeights[currentWeightIndex++] = currentWeights[k];
-			}
-		}
-	}
-
 	// Number of neurons per layer
 	this->host_neuronsPerLayer = new int[this->numLayers]{ };
 	this->devi_neuronsPerLayer = nullptr;
-
-	// Insert number of neurons per layer
-	for(int i = 0; i < this->numLayers; ++i)
-		host_neuronsPerLayer[i] = layers[i]->getNeurons().size();
-
 
 	// Global gradients
 	this->host_neuronGradients = new double[this->numNeurons]{ };
@@ -103,31 +100,6 @@ void NeuralNetGPU::setupTrainingSession(
 	// from global weight index
 	this->host_nextNeuronIndices = new int[this->numWeights]{ };
 	this->devi_nextNeuronIndices = nullptr;
-
-	// Set lookup indices
-	currentWeightIndex = 0;
-	unsigned int thisNeuronStride = 0;
-	unsigned int nextNeuronStride = 0;
-	for (int i = 0; i < layers.size(); ++i)
-	{
-		// Loop through neurons
-		std::vector<Neuron*>& currentNeurons = layers[i]->getNeurons();
-		nextNeuronStride += currentNeurons.size();
-		for (int j = 0; j < currentNeurons.size(); ++j)
-		{
-			// Loop through weights
-			std::vector<double>& currentWeights = currentNeurons[j]->getWeights();
-			for (int k = 0; k < currentWeights.size(); ++k)
-			{
-				this->host_thisNeuronIndices[currentWeightIndex] = thisNeuronStride;
-				this->host_nextNeuronIndices[currentWeightIndex] = nextNeuronStride + k;
-
-				currentWeightIndex++;
-			}
-
-			thisNeuronStride++;
-		}
-	}
 
 	// Allocate variables on GPU
 	this->safeMalloc(
@@ -153,6 +125,58 @@ void NeuralNetGPU::setupTrainingSession(
 	this->safeMalloc(
 		cudaMalloc(&devi_nextNeuronIndices, sizeof(double) * this->numWeights)
 	);
+}
+
+void NeuralNetGPU::initTrainingSession(
+	std::vector<Layer*>& layers
+)
+{
+	// Insert initial weights
+	unsigned int currentWeightIndex = 0;
+	for (int i = 0; i < layers.size(); ++i)
+	{
+		// Loop through neurons
+		std::vector<Neuron*>& layerNeurons = layers[i]->getNeurons();
+		for (int j = 0; j < layerNeurons.size(); ++j)
+		{
+			// Loop through weights
+			std::vector<double>& currentWeights = layerNeurons[j]->getWeights();
+			for (int k = 0; k < currentWeights.size(); ++k)
+			{
+				// Insert weights
+				this->host_neuronWeights[currentWeightIndex++] = currentWeights[k];
+			}
+		}
+	}
+
+	// Insert number of neurons per layer
+	for (int i = 0; i < this->numLayers; ++i)
+		host_neuronsPerLayer[i] = layers[i]->getNeurons().size();
+
+	// Set lookup indices
+	currentWeightIndex = 0;
+	unsigned int thisNeuronStride = 0;
+	unsigned int nextNeuronStride = 0;
+	for (int i = 0; i < layers.size(); ++i)
+	{
+		// Loop through neurons
+		std::vector<Neuron*>& currentNeurons = layers[i]->getNeurons();
+		nextNeuronStride += currentNeurons.size();
+		for (int j = 0; j < currentNeurons.size(); ++j)
+		{
+			// Loop through weights
+			std::vector<double>& currentWeights = currentNeurons[j]->getWeights();
+			for (int k = 0; k < currentWeights.size(); ++k)
+			{
+				this->host_thisNeuronIndices[currentWeightIndex] = thisNeuronStride;
+				this->host_nextNeuronIndices[currentWeightIndex] = nextNeuronStride + k;
+
+				currentWeightIndex++;
+			}
+
+			thisNeuronStride++;
+		}
+	}
 
 	// Copy over number of neurons per layer, 
 	// since this stays static
@@ -184,11 +208,31 @@ void NeuralNetGPU::setupTrainingSession(
 			sizeof(double) * this->numWeights,
 			cudaMemcpyHostToDevice
 		)
-	); 
+	);
 	this->safeCopy(
 		cudaMemcpy(
 			this->devi_nextNeuronIndices,
 			this->host_nextNeuronIndices,
+			sizeof(double) * this->numWeights,
+			cudaMemcpyHostToDevice
+		)
+	);
+
+	// Reset values
+	memset(this->host_neuronGradients, 0.0, sizeof(double) * this->numNeurons);
+	this->safeCopy(
+		cudaMemcpy(
+			this->devi_neuronGradients,
+			this->host_neuronGradients,
+			sizeof(double) * this->numNeurons,
+			cudaMemcpyHostToDevice
+		)
+	);
+	memset(this->host_neuronDeltaWeights, 0.0, sizeof(double) * this->numWeights);
+	this->safeCopy(
+		cudaMemcpy(
+			this->devi_neuronDeltaWeights,
+			this->host_neuronDeltaWeights,
 			sizeof(double) * this->numWeights,
 			cudaMemcpyHostToDevice
 		)
@@ -357,25 +401,4 @@ void NeuralNetGPU::extractApplyResults(std::vector<Layer*>& layers)
 			}
 		}
 	}
-}
-
-void NeuralNetGPU::releaseTrainingSession()
-{
-	delete[] this->host_neuronOutputs;
-	delete[] this->host_neuronWeights;
-	delete[] this->host_neuronsPerLayer;
-
-	delete[] this->host_neuronGradients;
-	delete[] this->host_neuronDeltaWeights;
-	delete[] this->host_thisNeuronIndices;
-	delete[] this->host_nextNeuronIndices;
-
-	cudaFree(this->devi_neuronOutputs);
-	cudaFree(this->devi_neuronWeights);
-	cudaFree(this->devi_neuronsPerLayer);
-
-	cudaFree(this->devi_neuronGradients);
-	cudaFree(this->devi_neuronDeltaWeights);
-	cudaFree(this->devi_thisNeuronIndices);
-	cudaFree(this->devi_nextNeuronIndices);
 }

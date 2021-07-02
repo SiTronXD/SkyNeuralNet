@@ -45,11 +45,14 @@ public:
 	NeuralNetGPU();
 	~NeuralNetGPU();
 
-	void setupTrainingSession(
+	void allocateTrainingSession(
 		std::vector<Layer*>& layers,
 		const unsigned int numNeurons,
 		const unsigned int numWeights,
 		const unsigned int maxNumNeuronsInLayer
+	);
+	void initTrainingSession(
+		std::vector<Layer*>& layers
 	);
 	void forwardProp(
 		std::vector<Layer*>& layers, 
@@ -60,5 +63,4 @@ public:
 		const std::vector<double>& expectedValues
 	);
 	void extractApplyResults(std::vector<Layer*>& layers);
-	void releaseTrainingSession();
 };

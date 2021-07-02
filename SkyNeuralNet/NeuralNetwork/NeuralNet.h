@@ -7,6 +7,7 @@
 class NeuralNet
 {
 private:
+	std::vector<unsigned int> neuronsPerLayer;
 	std::vector<Layer*> layers;
 
 	NeuralNetGPU gpuNeuralNet;
@@ -28,6 +29,8 @@ private:
 	void calcHiddenLayerGradients();
 	void updateWeights();
 
+	void deallocateLayers();
+
 	const void getNeuronInfo(
 		unsigned int& numNeurons,
 		unsigned int& numWeights,
@@ -35,7 +38,7 @@ private:
 	) const;
 
 public:
-	NeuralNet(const std::vector<unsigned int>& neuronPerLayer);
+	NeuralNet(std::vector<unsigned int> neuronPerLayer);
 	~NeuralNet();
 
 	void forwardProp(std::vector<double>& inputValues);
@@ -50,6 +53,7 @@ public:
 	void setUseGPUBackProp(bool useGPU);
 	void outputNeuralNetToFile(const std::string outputPath);
 
+	void resetNetStructure();
 	void endTrainingSession();
 
 	double calcError(const std::vector<double>& expectedValues) const;

@@ -75,6 +75,13 @@ void NeuralNet::updateWeights()
 	}
 }
 
+void NeuralNet::deallocateLayers()
+{
+	for (int i = 0; i < this->layers.size(); ++i)
+		delete this->layers[i];
+	this->layers.clear();
+}
+
 const void NeuralNet::getNeuronInfo(
 	unsigned int& numNeurons, 
 	unsigned int& numWeights, 
@@ -103,7 +110,8 @@ const void NeuralNet::getNeuronInfo(
 	}
 }
 
-NeuralNet::NeuralNet(const std::vector<unsigned int>& neuronPerLayer)
+NeuralNet::NeuralNet(std::vector<unsigned int> neuronsPerLayer)
+	: neuronsPerLayer(neuronsPerLayer)
 {
 	// Make sure rand() doesn't affect results when using
 	// different values for eta and alpha
@@ -111,12 +119,12 @@ NeuralNet::NeuralNet(const std::vector<unsigned int>& neuronPerLayer)
 
 	this->setUseGPU(true);
 
-	for (int i = 0; i < neuronPerLayer.size(); ++i)
+	for (int i = 0; i < this->neuronsPerLayer.size(); ++i)
 	{
 		// Get number of output weights, if it exists
 		int numOutputWeights = 0;
-		if (i < neuronPerLayer.size() - 1)
-			numOutputWeights = neuronPerLayer[i + 1];
+		if (i < this->neuronsPerLayer.size() - 1)
+			numOutputWeights = this->neuronsPerLayer[i + 1];
 
 		// Get previous layer, if it exists
 		Layer* previousLayer = nullptr;
@@ -126,10 +134,10 @@ NeuralNet::NeuralNet(const std::vector<unsigned int>& neuronPerLayer)
 		// Add layer
 		this->layers.push_back(
 			new Layer(
-				neuronPerLayer[i], 
+				this->neuronsPerLayer[i], 
 				numOutputWeights, 
 				previousLayer,
-				i == neuronPerLayer.size() - 1
+				i == this->neuronsPerLayer.size() - 1
 			)
 		);
 	}
@@ -139,21 +147,18 @@ NeuralNet::NeuralNet(const std::vector<unsigned int>& neuronPerLayer)
 	this->getNeuronInfo(numNeurons, numWeights, maxNumNeuronsInLayer);
 
 	// Setup training session for the GPU
-	this->gpuNeuralNet.setupTrainingSession(
+	this->gpuNeuralNet.allocateTrainingSession(
 		this->layers,
 		numNeurons,
 		numWeights,
 		maxNumNeuronsInLayer
 	);
+	this->gpuNeuralNet.initTrainingSession(this->layers);
 }
 
 NeuralNet::~NeuralNet()
 {
-	for (int i = 0; i < this->layers.size(); ++i)
-		delete this->layers[i];
-	this->layers.clear();
-
-	this->gpuNeuralNet.releaseTrainingSession();
+	this->deallocateLayers();
 }
 
 // Calculate output values in each layer
@@ -270,6 +275,39 @@ void NeuralNet::outputNeuralNetToFile(const std::string outputPath)
 	}
 
 	outputFile.close();
+}
+
+void NeuralNet::resetNetStructure()
+{
+	// Make sure rand() doesn't affect results when using
+	// different values for eta and alpha
+	srand(1);
+
+	this->deallocateLayers();
+	for (int i = 0; i < this->neuronsPerLayer.size(); ++i)
+	{
+		// Get number of output weights, if it exists
+		int numOutputWeights = 0;
+		if (i < this->neuronsPerLayer.size() - 1)
+			numOutputWeights = this->neuronsPerLayer[i + 1];
+
+		// Get previous layer, if it exists
+		Layer* previousLayer = nullptr;
+		if (i > 0)
+			previousLayer = this->layers[i - 1];
+
+		// Add layer
+		this->layers.push_back(
+			new Layer(
+				this->neuronsPerLayer[i],
+				numOutputWeights,
+				previousLayer,
+				i == this->neuronsPerLayer.size() - 1
+			)
+		);
+	}
+
+	this->gpuNeuralNet.initTrainingSession(this->layers);
 }
 
 void NeuralNet::endTrainingSession()
