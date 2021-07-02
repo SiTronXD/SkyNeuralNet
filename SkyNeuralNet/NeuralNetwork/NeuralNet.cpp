@@ -105,6 +105,10 @@ const void NeuralNet::getNeuronInfo(
 
 NeuralNet::NeuralNet(const std::vector<unsigned int>& neuronPerLayer)
 {
+	// Make sure rand() doesn't affect results when using
+	// different values for eta and alpha
+	srand(1);
+
 	this->setUseGPU(true);
 
 	for (int i = 0; i < neuronPerLayer.size(); ++i)

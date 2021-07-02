@@ -378,6 +378,4 @@ void NeuralNetGPU::releaseTrainingSession()
 	cudaFree(this->devi_neuronDeltaWeights);
 	cudaFree(this->devi_thisNeuronIndices);
 	cudaFree(this->devi_nextNeuronIndices);
-
-	cudaDeviceReset();
 }

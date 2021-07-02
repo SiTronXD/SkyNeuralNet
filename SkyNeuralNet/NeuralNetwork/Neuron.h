@@ -7,8 +7,8 @@ class Layer;
 class Neuron
 {
 private:
-	static const float ETA;		// Overall net learning rate [0.0 .. 1.0]
-	static const float ALPHA;	// Momentum, multiplier of last deltaWeight, [0.0 .. n]
+	static float ETA;		// Overall net learning rate [0.0 .. 1.0]
+	static float ALPHA;	// Momentum, multiplier of last deltaWeight, [0.0 .. n]
 
 	int myIndex;
 
@@ -35,6 +35,9 @@ public:
 	void setGradient(double gradientValue);
 	void setWeight(int index, double newWeightValue, double newDeltaWeightValue);
 	void updateWeights(Layer* previousLayer);
+
+	static void setETA(float newETA);
+	static void setALPHA(float newALPHA);
 
 	inline const double& getOutputValue() const { return this->outputValue; }
 	inline const double& getOutputWeight(int index) const { return this->outputWeights[index]; }

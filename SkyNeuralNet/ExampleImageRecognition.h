@@ -6,7 +6,7 @@
 #include "NeuralNetwork/NeuralNet.h"
 #include "Trainer.h"
 
-void startExampleImageRecognition()
+void startExampleImageRecognition(bool printOnlyLastPass)
 {
 	// Neural network for recognizing images of numbers
 	std::vector<unsigned int> neuronsPerLayer{ 784, 100, 10 };
@@ -48,8 +48,6 @@ void startExampleImageRecognition()
 		inputValues = trainer.getImgAsVector();
 		expectedOutputForBackprop = trainer.getImgAnswer();
 
-		std::cout << "Training pass: " + std::to_string(trainingPass) + "\n";
-
 		// Forward propagation
 		nn.forwardProp(inputValues);
 
@@ -77,20 +75,29 @@ void startExampleImageRecognition()
 			lastCorrect.push_back(false);
 
 		// Print as one single string for faster output
-		std::cout << "Answer: " + answer + "\n" +
-			"Expected: " + expected + "\n" +
-			"Error: " + std::to_string(nn.calcError(expectedOutputForBackprop)) + "\n" +
-			"CorrectTimes: " + std::to_string(numCorrect) + "\n" +
-			"NumLastCorrect: " + std::to_string(numLastCorrect) + "\n";
+		if ((printOnlyLastPass && trainingPass == NUM_TRAINING_SETS) ||
+			!printOnlyLastPass)
+		{
+			std::cout << "Training pass: " + std::to_string(trainingPass) + "\n" +
+				"Answer: " + answer + "\n" +
+				"Expected: " + expected + "\n" +
+				"Error: " + std::to_string(nn.calcError(expectedOutputForBackprop)) + "\n" +
+				"CorrectTimes: " + std::to_string(numCorrect) + "\n" +
+				"NumLastCorrect: " + std::to_string(numLastCorrect) + "\n";
+		}
 
 		// Back propagation
 		nn.backProp(expectedOutputForBackprop);
 
 		// Save and write time for this training pass
 		long endTrainingPassTime = std::clock();
-		std::cout << "Time for pass: " +
-			std::to_string(endTrainingPassTime - startTrainingPassTime) +
-			" milliseconds" + "\n\n";
+
+		if (!printOnlyLastPass)
+		{
+			std::cout << "Time for pass: " +
+				std::to_string(endTrainingPassTime - startTrainingPassTime) +
+				" milliseconds" + "\n\n";
+		}
 	}
 	nn.endTrainingSession();
 
