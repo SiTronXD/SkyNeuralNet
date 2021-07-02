@@ -3,7 +3,7 @@
 
 double ActivationFunction::sigmoid(double x)
 {
-	return 1.0 / (1.0 + exp(-x));
+	return 1.0 / (1.0 + std::exp(-x));
 }
 
 double ActivationFunction::sigmoidDerivative(double x)

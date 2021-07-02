@@ -4,14 +4,20 @@
 #include <fstream>
 
 // Execute forward propagation with CUDA
-void NeuralNet::executeCudaForwardProp()
+void NeuralNet::executeCudaForwardProp(std::vector<double>& inputValues)
 {
-	this->gpuNeuralNet.forwardProp(this->layers);
+	// Add input value for bias neuron
+	inputValues.push_back(1.0);
+
+	this->gpuNeuralNet.forwardProp(this->layers, inputValues);
 }
 
 // Execute forward propagation on the CPU
-void NeuralNet::executeCPUForwardProp()
+void NeuralNet::executeCPUForwardProp(std::vector<double>& inputValues)
 {
+	// Manually set output values in the input layer
+	this->layers[0]->setAllOutputs(inputValues);
+
 	// Calculate each output value
 	for (int i = 1; i < this->layers.size(); ++i)
 		this->layers[i]->calcOutputs();
@@ -20,12 +26,13 @@ void NeuralNet::executeCPUForwardProp()
 // Execute back propagation with CUDA
 void NeuralNet::executeCudaBackProp(const std::vector<double>& expectedValues)
 {
-	// Calculate gradients in output layer (on the CPU, to keep precision)
+	// Calculate gradients in output layer 
+	// (on the CPU, to keep precision when calculating the derivative)
 	this->calcOutputLayerGradients(expectedValues);
 
 	// Calculate gradients in hidden layers 
 	// and update weights (in CUDA)
-	this->gpuNeuralNet.backProp(this->layers, expectedValues);
+	this->gpuNeuralNet.backProp(this->layers);
 }
 
 // Execute back propagation on the CPU
@@ -35,7 +42,7 @@ void NeuralNet::executeCPUBackProp(const std::vector<double>& expectedValues)
 	this->calcOutputLayerGradients(expectedValues);
 
 	// Calculate gradients in hidden layers
-	this->calcHiddenLayerGradients(expectedValues);
+	this->calcHiddenLayerGradients();
 
 	// Finally update weights
 	this->updateWeights();
@@ -47,7 +54,7 @@ void NeuralNet::calcOutputLayerGradients(const std::vector<double>& expectedValu
 	this->layers.back()->calcOutputNeuronGradients(expectedValues);
 }
 
-void NeuralNet::calcHiddenLayerGradients(const std::vector<double>& expectedValues)
+void NeuralNet::calcHiddenLayerGradients()
 {
 	// Go through all hidden layers, back to front
 	for (int i = this->layers.size() - 2; i > 0; --i)
@@ -152,11 +159,8 @@ NeuralNet::~NeuralNet()
 // Calculate output values in each layer
 void NeuralNet::forwardProp(std::vector<double>& inputValues)
 {
-	// Manually set output values in the input layer
-	this->layers[0]->setAllOutputs(inputValues);
-
 	// Execute
-	(this->*forwardPropExecutionFunction)();
+	(this->*forwardPropExecutionFunction)(inputValues);
 }
 
 void NeuralNet::backProp(const std::vector<double>& expectedValues)
@@ -189,6 +193,8 @@ void NeuralNet::setWeight(unsigned int layerIndex, unsigned int neuronIndex,
 
 void NeuralNet::setUseGPU(bool useGPU)
 {
+	this->useGPU = useGPU;
+
 	this->setUseGPUForwardProp(useGPU);
 	this->setUseGPUBackProp(useGPU);
 }
@@ -264,6 +270,15 @@ void NeuralNet::outputNeuralNetToFile(const std::string outputPath)
 	}
 
 	outputFile.close();
+}
+
+void NeuralNet::endTrainingSession()
+{
+	// Extract and apply results from GPU
+	if (this->useGPU)
+	{
+		this->gpuNeuralNet.extractApplyResults(this->layers);
+	}
 }
 
 double NeuralNet::calcError(const std::vector<double>& expectedValues) const

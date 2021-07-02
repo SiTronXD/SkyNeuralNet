@@ -42,10 +42,11 @@ public:
 		const unsigned int numWeights,
 		const unsigned int maxNumNeuronsInLayer
 	);
-	void forwardProp(std::vector<Layer*>& layers);
-	void backProp(
+	void forwardProp(
 		std::vector<Layer*>& layers, 
-		const std::vector<double>& expectedValues
+		const std::vector<double>& inputValues
 	);
+	void backProp(std::vector<Layer*>& layers);
+	void extractApplyResults(std::vector<Layer*>& layers);
 	void releaseTrainingSession();
 };

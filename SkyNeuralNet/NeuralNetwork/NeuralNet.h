@@ -11,19 +11,21 @@ private:
 
 	NeuralNetGPU gpuNeuralNet;
 
-	void(NeuralNet::*forwardPropExecutionFunction)();
+	bool useGPU;
+
+	void(NeuralNet::*forwardPropExecutionFunction)(std::vector<double>& inputValues);
 	void(NeuralNet::*backPropExecutionFunction)(const std::vector<double>& expectedValues);
 
 	// Forward prop CUDA/CPU
-	void executeCudaForwardProp();
-	void executeCPUForwardProp();
+	void executeCudaForwardProp(std::vector<double>& inputValues);
+	void executeCPUForwardProp(std::vector<double>& inputValues);
 
 	// Back prop CUDA/CPU
 	void executeCudaBackProp(const std::vector<double>& expectedValues);
 	void executeCPUBackProp(const std::vector<double>& expectedValues);
 
 	void calcOutputLayerGradients(const std::vector<double>& expectedValues);
-	void calcHiddenLayerGradients(const std::vector<double>& expectedValues);
+	void calcHiddenLayerGradients();
 	void updateWeights();
 
 	const void getNeuronInfo(
@@ -47,6 +49,8 @@ public:
 	void setUseGPUForwardProp(bool useGPU);
 	void setUseGPUBackProp(bool useGPU);
 	void outputNeuralNetToFile(const std::string outputPath);
+
+	void endTrainingSession();
 
 	double calcError(const std::vector<double>& expectedValues) const;
 
