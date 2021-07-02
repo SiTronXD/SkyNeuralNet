@@ -21,6 +21,8 @@ public:
 
 	void readLine(std::vector<std::string>& foundWords);
 
+	std::string getAnswer(const std::vector<double>& answers);
+
 	inline const std::vector<double>& getImgAsVector() const 
 		{ return this->trainingData.getImgAsVector(); }
 	inline const std::vector<double>& getImgAnswer() const 

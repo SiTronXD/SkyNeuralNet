@@ -26,6 +26,9 @@ Trainer::Trainer(int numTrainingSets)
 
 		this->setNum[i] = std::stoi(readWords[0]);
 	}
+
+	// Init img vector
+	this->imgAnswer.resize(10, 0.0);
 }
 
 Trainer::~Trainer()
@@ -46,23 +49,22 @@ const bool Trainer::loadImgOfNumber(int imgIndex)
 	// Example: "mnist_train/train/000000-num5.png"
 	std::string name = "E:/simon/Bilder - Data Drive/TrainingSets/mnist_train/train/";
 	int digits = imgIndex == 0 ? 1 : (int) log10(imgIndex) + 1;
-	for (int i = 6 - digits; i > 0; --i)
-		name += "0";
-	name += std::to_string(imgIndex);
+	name.append(6 - digits, '0'); // Add zeros to the front of the file name
+	name.append(std::to_string(imgIndex));
+	name.append("-num");
 
 	// Create file name
-	std::string tempName = 
-		name + "-num" + std::to_string(this->setNum[imgIndex]) + ".png";
+	std::string foundFileName = 
+		name + std::to_string(this->setNum[imgIndex]) + ".png";
 
 	// Found file
-	if (this->trainingData.doesFileExist(tempName))
+	if (this->trainingData.doesFileExist(foundFileName))
 	{
-		this->trainingData.loadImg(tempName);
+		this->trainingData.loadImg(foundFileName);
 
-		// Create answer vector
-		this->imgAnswer.clear();
-		for (int j = 0; j < 10; ++j)
-			this->imgAnswer.push_back(j == this->setNum[imgIndex] ? 1.0 : 0.0);
+		// Clear and set answer array
+		memset(&this->imgAnswer[0], 0, this->imgAnswer.size() * sizeof(this->imgAnswer[0]));
+		this->imgAnswer[this->setNum[imgIndex]] = 1.0;
 
 		return true;
 	}
@@ -76,4 +78,22 @@ const bool Trainer::loadImgOfNumber(int imgIndex)
 void Trainer::readLine(std::vector<std::string>& foundWords)
 {
 	this->trainingData.readLine(foundWords);
+}
+
+std::string Trainer::getAnswer(const std::vector<double>& answers)
+{
+	int currentIndex = -1;
+	double currentBest = 0.0;
+
+	for (int i = 0; i < answers.size(); ++i)
+	{
+		if (answers[i] > currentBest)
+		{
+			currentIndex = i;
+			currentBest = answers[i];
+		}
+	}
+
+	// <index>: <guess percentage>% 
+	return std::to_string(currentIndex) + ": " + std::to_string(currentBest * 100.0) + "%";
 }

@@ -17,7 +17,7 @@ private:
 
 	unsigned char* imageData;
 
-	std::vector<double> imgArray;
+	std::vector<double> imgVec;
 
 public:
 	TrainingData();
@@ -35,5 +35,5 @@ public:
 	}
 
 	inline const std::vector<double>& getImgAsVector() const 
-		{ return this->imgArray; }
+		{ return this->imgVec; }
 };

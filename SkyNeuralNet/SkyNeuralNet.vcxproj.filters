@@ -80,5 +80,11 @@
     <ClInclude Include="NeuralNetwork\NeuralNetGPU.cuh">
       <Filter>Resource Files</Filter>
     </ClInclude>
+    <ClInclude Include="ExampleXOR.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ExampleImageRecognition.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

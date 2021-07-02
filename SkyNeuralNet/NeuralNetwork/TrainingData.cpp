@@ -5,8 +5,9 @@
 
 TrainingData::TrainingData()
 	: imageWidth(0), imageHeight(0), imageComponents(0), imageData(0)
-{ 
-
+{
+	// Allocate array once at the start
+	this->imgVec.reserve(this->imageWidth * this->imageHeight);
 }
 
 TrainingData::~TrainingData()
@@ -46,7 +47,7 @@ const bool TrainingData::loadImg(std::string path)
 	double r, g, b;
 
 	// Load grey-scale values
-	this->imgArray.clear();
+	this->imgVec.clear();
 	for (int y = 0; y < this->imageHeight; ++y)
 	{
 		for (int x = 0; x < this->imageWidth; ++x)
@@ -56,7 +57,7 @@ const bool TrainingData::loadImg(std::string path)
 			g = (double) pixelOffset[1] / 255.0;
 			b = (double) pixelOffset[2] / 255.0;
 
-			this->imgArray.push_back((r + g + b) / 3.0);
+			this->imgVec.push_back((r + g + b) / 3.0);
 		}
 	}
 
