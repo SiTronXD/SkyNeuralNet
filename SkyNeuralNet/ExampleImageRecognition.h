@@ -114,7 +114,7 @@ void startExampleImageRecognition()
 		<< " milliseconds)" << std::endl;
 
 	// Output topology, weights and biases to file
-	//nn.outputNeuralNetToFile("E:/JavaProjs/SkyNeuralNetUsageExample/SkyNeuralNetUsage/android/assets/SkyNeuralNetSettings.ini");
+	// nn.outputNeuralNetToFile("E:/JavaProjs/SkyNeuralNetUsageExample/SkyNeuralNetUsage/android/assets/SkyNeuralNetSettings.ini");
 }
 
 void startExampleImageRecognitionTestBench()
