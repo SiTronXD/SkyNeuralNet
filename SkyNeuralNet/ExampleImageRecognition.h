@@ -13,7 +13,7 @@ void startExampleImageRecognition()
 	NeuralNet nn(neuronsPerLayer);
 	// nn.setUseGPU(false);
 
-	const int NUM_TRAINING_SETS = 5000;
+	const int NUM_TRAINING_SETS = 60000;
 	Trainer trainer(NUM_TRAINING_SETS);
 
 	std::vector<double> inputValues;

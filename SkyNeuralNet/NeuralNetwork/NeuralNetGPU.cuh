@@ -12,7 +12,7 @@ private:
 	unsigned int numWeights;
 	unsigned int maxNumNeuronsInLayer;
 
-	// Used in forward prop
+	// ----- Mainly used in forward prop -----
 	double* host_neuronOutputs;
 	double* devi_neuronOutputs;
 
@@ -22,12 +22,21 @@ private:
 	int* host_neuronsPerLayer;
 	int* devi_neuronsPerLayer;
 
-	// Used in back prop
+	// ----- Mainly used in back prop -----
 	double* host_neuronGradients;
 	double* devi_neuronGradients;
 
 	double* host_neuronDeltaWeights;
 	double* devi_neuronDeltaWeights;
+
+	// Lookup array to get the current neuron index, from global weight index
+	int* host_thisNeuronIndices;
+	int* devi_thisNeuronIndices;
+
+	// Lookup array to get neuron index that a global weight is connected to,
+	// from global weight index
+	int* host_nextNeuronIndices;
+	int* devi_nextNeuronIndices;
 
 	void safeMalloc(const cudaError_t& error);
 	void safeCopy(const cudaError_t& error);
@@ -46,7 +55,10 @@ public:
 		std::vector<Layer*>& layers, 
 		const std::vector<double>& inputValues
 	);
-	void backProp(std::vector<Layer*>& layers);
+	void backProp(
+		std::vector<Layer*>& layers,
+		const std::vector<double>& expectedValues
+	);
 	void extractApplyResults(std::vector<Layer*>& layers);
 	void releaseTrainingSession();
 };

@@ -64,7 +64,7 @@ __global__ void cudaForwardProp(
 			// Go through each neuron from the last layer
 			for (int n = 0; n < neuronsPerLayer[l - 1]; ++n)
 			{
-				double outVal = neuronOutputs[lastLayerIndexStride + n];
+				double outVal = lastLayerOutputs[n];
 				double weightVal = 
 					neuronWeights[
 						lastLayerWeightStride +
@@ -83,7 +83,7 @@ __global__ void cudaForwardProp(
 			}
 			// Activation function for output layer
 			// (Let the CPU do it to keep precision,
-			// only takes +1 second for 5000 training sets)
+			// only takes <100 ms for 5000 training sets)
 			/*else
 			{
 				neuronOutputs[layerIndexStride + id] =
@@ -103,15 +103,12 @@ __global__ void cudaForwardProp(
 	}
 }
 
-__global__ void cudaBackProp(
+__global__ void cudaCalcGradients(
 	double* neuronOutputs,
 	double* neuronWeights,
-	double* neuronDeltaWeights,
 	double* neuronGradients,
 	int* neuronsPerLayer,
-	int numLayers,
-	float eta,
-	float alpha
+	int numLayers
 )
 {
 	int id = blockIdx.x * blockDim.x + threadIdx.x;
@@ -166,7 +163,7 @@ __global__ void cudaBackProp(
 	// ----- Update weights -----
 
 	// Go through all layers, except output layer
-	nextLayerStride = neuronsPerLayer[0];
+	/*nextLayerStride = neuronsPerLayer[0];
 	layerStride = 0;
 	weightStride = 0;
 	for (int i = 0; i < numLayers - 1; ++i)
@@ -198,5 +195,34 @@ __global__ void cudaBackProp(
 		nextLayerStride += neuronsPerLayer[i + 1];
 
 		__syncthreads();
+	}*/
+}
+
+__global__ void cudaUpdateWeights(
+	double* neuronOutputs,
+	double* neuronWeights,
+	double* neuronDeltaWeights,
+	double* neuronGradients,
+	int* thisNeuronIndex,
+	int* nextNeuronIndex,
+	int numWeights,
+	float eta,
+	float alpha
+)
+{
+	int id = blockIdx.x * blockDim.x + threadIdx.x;
+
+	if (id < numWeights)
+	{
+		double oldDeltaWeight = neuronDeltaWeights[id];
+		double newDeltaWeight =
+			eta * neuronOutputs[thisNeuronIndex[id]] * neuronGradients[nextNeuronIndex[id]] +
+			alpha * oldDeltaWeight;
+
+		// Apply weight and delta weight
+		neuronDeltaWeights[id] = newDeltaWeight;
+		neuronWeights[id] += newDeltaWeight;
 	}
+
+	__syncthreads();
 }

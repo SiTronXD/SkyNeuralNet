@@ -5,6 +5,8 @@
 #include "NeuralNetwork/NeuralNet.h"
 #include "Trainer.h"
 
+// Takes about 100-200 ms more when using the GPU compared to the CPU.
+// Larger networks is more suitable for the GPU.
 void startExampleXOR()
 {
 	// XOR neural network
@@ -18,6 +20,9 @@ void startExampleXOR()
 	std::vector<std::string> readValues;
 	trainer.readLine(readValues);
 	trainer.readLine(readValues);
+
+	// Track time of overall training
+	long startTime = std::clock();
 
 	int trainingPass = 1;
 	while (readValues.size() > 0)
@@ -50,4 +55,15 @@ void startExampleXOR()
 		trainer.readLine(readValues);
 	}
 	nn.endTrainingSession();
+
+	// Save time for overall training
+	long endTime = std::clock();
+	long totalTime = (endTime - startTime);
+	long seconds = totalTime / 1000;
+
+	// Write time
+	std::cout << "Done" << std::endl <<
+		"Time: " << seconds / 60 << " minutes "
+		<< seconds % 60 << " seconds" << " (" << totalTime
+		<< " milliseconds)" << std::endl;
 }

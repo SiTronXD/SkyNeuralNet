@@ -11,13 +11,22 @@ __global__ void cudaForwardProp(
 	int numLayers
 );
 
-__global__ void cudaBackProp(
+__global__ void cudaCalcGradients(
+	double* neuronOutputs,
+	double* neuronWeights,
+	double* neuronGradients,
+	int* neuronsPerLayer,
+	int numLayers
+);
+
+__global__ void cudaUpdateWeights(
 	double* neuronOutputs,
 	double* neuronWeights,
 	double* neuronDeltaWeights,
 	double* neuronGradients,
-	int* neuronsPerLayer,
-	int numLayers,
+	int* thisNeuronIndex,
+	int* nextNeuronIndex,
+	int numWeights,
 	float eta,
 	float alpha
 );

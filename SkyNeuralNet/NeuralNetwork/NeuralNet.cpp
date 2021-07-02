@@ -26,13 +26,9 @@ void NeuralNet::executeCPUForwardProp(std::vector<double>& inputValues)
 // Execute back propagation with CUDA
 void NeuralNet::executeCudaBackProp(const std::vector<double>& expectedValues)
 {
-	// Calculate gradients in output layer 
-	// (on the CPU, to keep precision when calculating the derivative)
-	this->calcOutputLayerGradients(expectedValues);
-
 	// Calculate gradients in hidden layers 
 	// and update weights (in CUDA)
-	this->gpuNeuralNet.backProp(this->layers);
+	this->gpuNeuralNet.backProp(this->layers, expectedValues);
 }
 
 // Execute back propagation on the CPU
