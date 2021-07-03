@@ -10,10 +10,9 @@ void startExampleImageRecognition()
 {
 	// Neural network for recognizing images of numbers
 	std::vector<unsigned int> neuronsPerLayer{ 784, 100, 10 };
-	NeuralNet nn(neuronsPerLayer);
-	// nn.setUseGPU(false);
+	NeuralNet nn(neuronsPerLayer, true);
 
-	const bool PRINT_ONLY_LAST_PASS = false;
+	bool PRINT_ONLY_LAST_PASS = false;
 	const int NUM_TRAINING_SETS = 60000;
 	Trainer trainer(NUM_TRAINING_SETS);
 
@@ -27,7 +26,7 @@ void startExampleImageRecognition()
 	int numCorrect = 0;
 	int numLastCorrect = 0;
 	std::vector<bool> lastCorrect;
-	lastCorrect.reserve(100);
+	lastCorrect.reserve(KEEP_TRACK_NUM_LAST_CORRECT);
 
 	// Track time of overall training
 	long startTime = std::clock();
@@ -76,15 +75,14 @@ void startExampleImageRecognition()
 			lastCorrect.push_back(false);
 
 		// Print as one single string for faster output
-		if ((PRINT_ONLY_LAST_PASS && trainingPass == NUM_TRAINING_SETS) ||
-			!PRINT_ONLY_LAST_PASS)
+		if (!PRINT_ONLY_LAST_PASS || trainingPass == NUM_TRAINING_SETS)
 		{
 			std::cout << "Training pass: " + std::to_string(trainingPass) + "\n" +
 				"Answer: " + answer + "\n" +
 				"Expected: " + expected + "\n" +
 				"Error: " + std::to_string(nn.calcError(expectedOutputForBackprop)) + "\n" +
-				"CorrectTimes: " + std::to_string(numCorrect) + "\n" +
-				"NumLastCorrect: " + std::to_string(numLastCorrect) + "\n";
+				"Correct answers: " + std::to_string(numCorrect) + "\n" +
+				"Last " + std::to_string(KEEP_TRACK_NUM_LAST_CORRECT) + " correct answers: " + std::to_string(numLastCorrect) + "\n";
 		}
 
 		// Back propagation
@@ -121,8 +119,10 @@ void startExampleImageRecognitionTestBench()
 {
 	// Neural network for recognizing images of numbers
 	std::vector<unsigned int> neuronsPerLayer{ 784, 100, 10 };
-	NeuralNet nn(neuronsPerLayer);
-	// nn.setUseGPU(false);
+	NeuralNet nn(neuronsPerLayer, true);
+
+	const int NUM_TRAINING_SETS = 60000;
+	const int KEEP_TRACK_NUM_LAST_CORRECT = 100;
 
 	// Best so far: 
 	// (ETA: 0.04, ALPHA: 0.15, 52 045 correct, 90 correct last 100)
@@ -138,7 +138,6 @@ void startExampleImageRecognitionTestBench()
 
 			nn.resetNetStructure();
 
-			const int NUM_TRAINING_SETS = 60000;
 			Trainer trainer(NUM_TRAINING_SETS);
 
 			std::vector<double> inputValues;
@@ -146,7 +145,6 @@ void startExampleImageRecognitionTestBench()
 			std::vector<double> outputValues;
 
 			// Variables for statistics
-			const int KEEP_TRACK_NUM_LAST_CORRECT = 100;
 			int trainingPass = 0;
 			int numCorrect = 0;
 			int numLastCorrect = 0;
@@ -206,8 +204,8 @@ void startExampleImageRecognitionTestBench()
 						"Answer: " + answer + "\n" +
 						"Expected: " + expected + "\n" +
 						"Error: " + std::to_string(nn.calcError(expectedOutputForBackprop)) + "\n" +
-						"CorrectTimes: " + std::to_string(numCorrect) + "\n" +
-						"NumLastCorrect: " + std::to_string(numLastCorrect) + "\n";
+						"Correct answers: " + std::to_string(numCorrect) + "\n" +
+						"Last " + std::to_string(KEEP_TRACK_NUM_LAST_CORRECT) + " correct answers: " + std::to_string(numLastCorrect) + "\n";
 				}
 
 				// Back propagation

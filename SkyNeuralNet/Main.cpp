@@ -9,8 +9,13 @@ int main()
 
 	std::cout << "Started training...\n";
 
+	// XOR example
 	// startExampleXOR();
+
+	// Image recognition example
 	startExampleImageRecognition();
+
+	// Sequentially test different values for ETA and ALPHA
 	//startExampleImageRecognitionTestBench();
 	
 	getchar();

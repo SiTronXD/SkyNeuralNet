@@ -110,17 +110,64 @@ const void NeuralNet::getNeuronInfo(
 	}
 }
 
-NeuralNet::NeuralNet(std::vector<unsigned int> neuronsPerLayer)
+void NeuralNet::setUseGPU(bool _useGPU)
+{
+	this->useGPU = _useGPU;
+
+	this->setUseGPUForwardProp(_useGPU);
+	this->setUseGPUBackProp(_useGPU);
+}
+
+void NeuralNet::setUseGPUForwardProp(bool _useGPU)
+{
+	// CUDA
+	if (_useGPU)
+	{
+		this->forwardPropExecutionFunction = &NeuralNet::executeCudaForwardProp;
+	}
+	// CPU
+	else
+	{
+		this->forwardPropExecutionFunction = &NeuralNet::executeCPUForwardProp;
+	}
+}
+
+void NeuralNet::setUseGPUBackProp(bool _useGPU)
+{
+	// CUDA
+	if (_useGPU)
+	{
+		this->backPropExecutionFunction = &NeuralNet::executeCudaBackProp;
+	}
+	// CPU
+	else
+	{
+		this->backPropExecutionFunction = &NeuralNet::executeCPUBackProp;
+	}
+}
+
+NeuralNet::NeuralNet(std::vector<unsigned int> neuronsPerLayer, bool _useGPU)
 	: neuronsPerLayer(neuronsPerLayer)
 {
 	// Make sure rand() doesn't affect results when using
 	// different values for eta and alpha
 	srand(1);
 
-	this->setUseGPU(true);
+	this->setUseGPU(_useGPU);
 
 	for (int i = 0; i < this->neuronsPerLayer.size(); ++i)
 	{
+		// Make sure that each layer does not 
+		// contain more than 1024 neurons
+		if (this->neuronsPerLayer[i] > 1024)
+		{
+			std::cout << std::endl;
+			std::cout << "ERROR: GPU acceleration can not be used with more than 1024 neurons in a single layer..." << std::endl;
+			std::cout << "The neural network will now be forced to only use the CPU." << std::endl;
+			std::cout << std::endl;
+			this->setUseGPU(false);
+		}
+
 		// Get number of output weights, if it exists
 		int numOutputWeights = 0;
 		if (i < this->neuronsPerLayer.size() - 1)
@@ -142,18 +189,21 @@ NeuralNet::NeuralNet(std::vector<unsigned int> neuronsPerLayer)
 		);
 	}
 
-	// Get info about network
-	unsigned int numNeurons, numWeights, maxNumNeuronsInLayer;
-	this->getNeuronInfo(numNeurons, numWeights, maxNumNeuronsInLayer);
+	if (this->useGPU)
+	{
+		// Get info about network
+		unsigned int numNeurons, numWeights, maxNumNeuronsInLayer;
+		this->getNeuronInfo(numNeurons, numWeights, maxNumNeuronsInLayer);
 
-	// Setup training session for the GPU
-	this->gpuNeuralNet.allocateTrainingSession(
-		this->layers,
-		numNeurons,
-		numWeights,
-		maxNumNeuronsInLayer
-	);
-	this->gpuNeuralNet.initTrainingSession(this->layers);
+		// Setup training session for the GPU
+		this->gpuNeuralNet.allocateTrainingSession(
+			this->layers,
+			numNeurons,
+			numWeights,
+			maxNumNeuronsInLayer
+		);
+		this->gpuNeuralNet.initTrainingSession(this->layers);
+	}
 }
 
 NeuralNet::~NeuralNet()
@@ -194,42 +244,6 @@ void NeuralNet::setWeight(unsigned int layerIndex, unsigned int neuronIndex,
 
 	for (int i = 0; i < currentNeuron->getWeights().size(); ++i)
 		currentNeuron->getWeights()[i] = newWeights[i];
-}
-
-void NeuralNet::setUseGPU(bool useGPU)
-{
-	this->useGPU = useGPU;
-
-	this->setUseGPUForwardProp(useGPU);
-	this->setUseGPUBackProp(useGPU);
-}
-
-void NeuralNet::setUseGPUForwardProp(bool useGPU)
-{
-	// CUDA
-	if (useGPU)
-	{
-		this->forwardPropExecutionFunction = &NeuralNet::executeCudaForwardProp;
-	}
-	// CPU
-	else
-	{
-		this->forwardPropExecutionFunction = &NeuralNet::executeCPUForwardProp;
-	}
-}
-
-void NeuralNet::setUseGPUBackProp(bool useGPU)
-{
-	// CUDA
-	if (useGPU)
-	{
-		this->backPropExecutionFunction = &NeuralNet::executeCudaBackProp;
-	}
-	// CPU
-	else
-	{
-		this->backPropExecutionFunction = &NeuralNet::executeCPUBackProp;
-	}
 }
 
 void NeuralNet::outputNeuralNetToFile(const std::string outputPath)
@@ -307,7 +321,10 @@ void NeuralNet::resetNetStructure()
 		);
 	}
 
-	this->gpuNeuralNet.initTrainingSession(this->layers);
+	if (this->useGPU)
+	{
+		this->gpuNeuralNet.initTrainingSession(this->layers);
+	}
 }
 
 void NeuralNet::endTrainingSession()

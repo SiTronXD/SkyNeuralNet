@@ -36,23 +36,24 @@ NeuralNetGPU::NeuralNetGPU()
 
 NeuralNetGPU::~NeuralNetGPU() 
 {
-	delete[] this->host_neuronOutputs;
-	delete[] this->host_neuronWeights;
-	delete[] this->host_neuronsPerLayer;
+	if(this->host_neuronOutputs) delete[] this->host_neuronOutputs;
+	if(this->host_neuronWeights) delete[] this->host_neuronWeights;
+	if(this->host_neuronsPerLayer) delete[] this->host_neuronsPerLayer;
 
-	delete[] this->host_neuronGradients;
-	delete[] this->host_neuronDeltaWeights;
-	delete[] this->host_thisNeuronIndices;
-	delete[] this->host_nextNeuronIndices;
+	if(this->host_neuronGradients) delete[] this->host_neuronGradients;
+	if(this->host_neuronDeltaWeights) delete[] this->host_neuronDeltaWeights;
+	if(this->host_thisNeuronIndices) delete[] this->host_thisNeuronIndices;
+	if(this->host_nextNeuronIndices) delete[] this->host_nextNeuronIndices;
 
-	cudaFree(this->devi_neuronOutputs);
-	cudaFree(this->devi_neuronWeights);
-	cudaFree(this->devi_neuronsPerLayer);
 
-	cudaFree(this->devi_neuronGradients);
-	cudaFree(this->devi_neuronDeltaWeights);
-	cudaFree(this->devi_thisNeuronIndices);
-	cudaFree(this->devi_nextNeuronIndices);
+	if(this->devi_neuronOutputs) cudaFree(this->devi_neuronOutputs);
+	if(this->devi_neuronWeights) cudaFree(this->devi_neuronWeights);
+	if(this->devi_neuronsPerLayer) cudaFree(this->devi_neuronsPerLayer);
+
+	if(this->devi_neuronGradients) cudaFree(this->devi_neuronGradients);
+	if(this->devi_neuronDeltaWeights) cudaFree(this->devi_neuronDeltaWeights);
+	if(this->devi_thisNeuronIndices) cudaFree(this->devi_thisNeuronIndices);
+	if(this->devi_nextNeuronIndices) cudaFree(this->devi_nextNeuronIndices);
 
 	cudaDeviceReset();
 }

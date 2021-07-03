@@ -11,8 +11,7 @@ void startExampleXOR()
 {
 	// XOR neural network
 	std::vector<unsigned int> neuronsPerLayer{ 2, 4, 1 };
-	NeuralNet nn(neuronsPerLayer);
-	//nn.setUseGPU(false);
+	NeuralNet nn(neuronsPerLayer, true);
 
 	Trainer trainer;
 	trainer.loadFile("XORTrainingData.txt");

@@ -34,7 +34,7 @@ __global__ void cudaForwardProp(
 	int numLayers
 )
 {
-	__shared__ double lastLayerOutputs[MAX_BLOCKING_SIZE];
+	__shared__ double shared_lastLayerOutputs[MAX_BLOCKING_SIZE];
 
 	int id = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -51,7 +51,7 @@ __global__ void cudaForwardProp(
 		// into shared memory
 		if (id < neuronsPerLayer[l - 1])
 		{
-			lastLayerOutputs[id] = 
+			shared_lastLayerOutputs[id] =
 				neuronOutputs[lastLayerIndexStride + id];
 		}
 		__syncthreads();
@@ -64,7 +64,7 @@ __global__ void cudaForwardProp(
 			// Go through each neuron from the last layer
 			for (int n = 0; n < neuronsPerLayer[l - 1]; ++n)
 			{
-				double outVal = lastLayerOutputs[n];
+				double outVal = shared_lastLayerOutputs[n];
 				double weightVal = 
 					neuronWeights[
 						lastLayerWeightStride +
@@ -111,6 +111,8 @@ __global__ void cudaCalcGradients(
 	int numLayers
 )
 {
+	__shared__ double shared_nextLayerGradients[MAX_BLOCKING_SIZE];
+
 	int id = blockIdx.x * blockDim.x + threadIdx.x;
 
 	// ----- Calculate gradients in hidden layers -----
@@ -130,22 +132,30 @@ __global__ void cudaCalcGradients(
 		weightStride += neuronsPerLayer[i] * (neuronsPerLayer[i + 1] - 1);
 	}
 
-	// Go through each hidden layer, back to front, 
+	// Loop through each hidden layer, back to front, 
 	// starting from the last hidden layer
 	for (int i = numLayers - 1 - 1; i > 0; --i)
 	{
+		// Load gradients into shared memory
+		if (id < neuronsPerLayer[i + 1] - 1)
+		{
+			shared_nextLayerGradients[id] = neuronGradients[nextLayerStride + id];
+		}
+		__syncthreads();
+
 		// Make sure this thread can work
 		if (id < neuronsPerLayer[i])
 		{
 			// Sum weight gradients
 			double swg = 0.0;
 
+			// Loop through each weight
 			for (int j = 0; j < neuronsPerLayer[i + 1] - 1; ++j)
 			{
 				// += <weight to next neuron> * <next neuron gradient>
 				swg +=
 					neuronWeights[weightStride + (neuronsPerLayer[i + 1] - 1) * id + j] *
-					neuronGradients[nextLayerStride + j];
+					shared_nextLayerGradients[j];
 			}
 
 			neuronGradients[layerStride + id] =
@@ -159,43 +169,6 @@ __global__ void cudaCalcGradients(
 
 		__syncthreads();
 	}
-
-	// ----- Update weights -----
-
-	// Go through all layers, except output layer
-	/*nextLayerStride = neuronsPerLayer[0];
-	layerStride = 0;
-	weightStride = 0;
-	for (int i = 0; i < numLayers - 1; ++i)
-	{
-		// Make sure this thread can work
-		if (id < neuronsPerLayer[i])
-		{
-			// Go through weights
-			for (int j = 0; j < neuronsPerLayer[i + 1] - 1; ++j)
-			{
-				int weightIndex =
-					weightStride +
-					(neuronsPerLayer[i + 1] - 1) * id + // Ignore bias neuron
-					j;
-
-				double oldDeltaWeight = neuronDeltaWeights[weightIndex];
-				double newDeltaWeight =
-					eta * neuronOutputs[layerStride + id] * neuronGradients[nextLayerStride + j] +
-					alpha * oldDeltaWeight;
-
-				// Apply weight and delta weight
-				neuronDeltaWeights[weightIndex] = newDeltaWeight;
-				neuronWeights[weightIndex] += newDeltaWeight;
-			}
-		}
-
-		weightStride += neuronsPerLayer[i] * (neuronsPerLayer[i + 1] - 1);
-		layerStride = nextLayerStride;
-		nextLayerStride += neuronsPerLayer[i + 1];
-
-		__syncthreads();
-	}*/
 }
 
 __global__ void cudaUpdateWeights(

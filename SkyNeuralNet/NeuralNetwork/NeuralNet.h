@@ -37,8 +37,12 @@ private:
 		unsigned int& maxNumNeuronsInLayer
 	) const;
 
+	void setUseGPU(bool _useGPU);
+	void setUseGPUForwardProp(bool _useGPU);
+	void setUseGPUBackProp(bool _useGPU);
+
 public:
-	NeuralNet(std::vector<unsigned int> neuronPerLayer);
+	NeuralNet(std::vector<unsigned int> neuronPerLayer, bool _useGPU = true);
 	~NeuralNet();
 
 	void forwardProp(std::vector<double>& inputValues);
@@ -48,9 +52,6 @@ public:
 	void setWeight(unsigned int layerIndex, unsigned int neuronIndex,
 		const std::vector<double>& newWeights);
 
-	void setUseGPU(bool useGPU);
-	void setUseGPUForwardProp(bool useGPU);
-	void setUseGPUBackProp(bool useGPU);
 	void outputNeuralNetToFile(const std::string outputPath);
 
 	void resetNetStructure();

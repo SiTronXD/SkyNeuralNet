@@ -95,5 +95,5 @@ std::string Trainer::getAnswer(const std::vector<double>& answers)
 	}
 
 	// <index>: <guess percentage>% 
-	return std::to_string(currentIndex) + ": " + std::to_string(currentBest * 100.0) + "%";
+	return std::to_string(currentIndex) + " (" + std::to_string(currentBest * 100.0) + "%)";
 }

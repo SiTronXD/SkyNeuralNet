@@ -2,18 +2,15 @@
 #include "ActivationFunction.h"
 #include "Layer.h"
 
-// Best for XOR example: (ETA: 0.15, ALPHA: 0.5)
+// Good parameters for XOR example: 
+// (ETA: 0.15, ALPHA: 0.5)
+
+// Good parameters for image recognition example:
+// (ETA: 0.04, ALPHA: 0.15)
 
 float Neuron::ETA = 0.04;
 float Neuron::ALPHA = 0.15;
 
-// ETA: 0.01, ALPHA: 0.35, 5000 sets, Last 100 correct: 84, Correct: 2815
-// ETA: 0.02, ALPHA: 0.35, 5000 sets, Last 100 correct: 85, Correct: 3490
-// ETA: 0.05, ALPHA: 0.35, 5000 sets, Last 100 correct: 86, Correct: 3734
-// ETA: 0.10, ALPHA: 0.35, 5000 sets, Last 100 correct: 78, Correct: 3645
-// ETA: 0.15, ALPHA: 0.35, 5000 sets, Last 100 correct: 71, Correct: 3431
-// ETA: 0.25, ALPHA: 0.35, 5000 sets, Last 100 correct: 47, Correct: 2363
-// ETA: 0.35, ALPHA: 0.35, 5000 sets, Last 100 correct: 40, Correct: 1516
 
 void Neuron::calcGradient(double delta)
 {
