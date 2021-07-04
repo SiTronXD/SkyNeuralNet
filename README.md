@@ -24,7 +24,7 @@ Updating the weights also takes place on the GPU, since each weight can be modif
 * CPU: i7-8700
 * GPU: GTX 1070
 
-### Network topologies for the examples (bias is ignored):
+### Topologies for the example networks (bias is ignored):
 * Learning XOR: 2, 4, 1
 * Image recognition: 784, 100, 10
 
