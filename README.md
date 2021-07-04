@@ -6,6 +6,10 @@ The program can load and interpret either arbitrary files or images (using the s
 # Network structure
 Each layer contains a predefined number of neurons, with each layer also containing one extra bias neuron. While not necessary, the output layer also contains a bias neuron to generalize the algorithms used. Neurons in the hidden layers use the ReLU activation function, while neurons in the output layer use a sigmoid function.
 
+### Network topologies for the examples (bias is ignored):
+* XOR: 2, 4, 1
+* Image recognition: 784, 100, 10
+
 # How the GPU is utilized
 To keep the program simple when utilizing shared memory on the GPU, a maximum of 1024 neurons in a single layer is allowed. Anything beyond that will automatically force the program to only use the CPU.
 
@@ -17,8 +21,18 @@ The majority of this process is computed on the GPU. However, the activation fun
 ### Backward propagation: 
 The gradient of each neuron in the output layer is computed on the CPU, again, to keep precision when computing derivatives of the sigmoid function. After that, the GPU is used to compute gradients in the hidden layers, similar to how forward propagation is executed. Shared memory is utilized here aswell to load in the next layer's gradients. 
 
-Updating the weights also takes place on the GPU, since each weight can be computed independently of eachother.
+Updating the weights also takes place on the GPU, since each weight can be modified independently of eachother.
+
+# Quick benchmarks
+* CPU: i7-8700
+* GPU: GTX 1070
+
+| Example  | Number of training sets | Approximate time for CPU | Approximate time for GPU |
+| ------------- | ------------- | ------------- | ------------- |
+| XOR  | 2000  | 4.98 sec  | 5.10 sec  |
+| Image recognition  | 5000  | 32 sec  | 13 sec  |
+| Image recognition  | 60 000  | 6 min 30 sec  | 2 min 34 sec  |
 
 # Example Usage
-An example application of using a neural network exported by SkyNeuralNet can be found here:
+An example application using a neural network exported by SkyNeuralNet can be found here:
 [https://github.com/SiTronXD/SkyNeuralNetUsageExample](https://github.com/SiTronXD/SkyNeuralNetUsageExample)
