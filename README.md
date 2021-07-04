@@ -6,10 +6,6 @@ The program can load and interpret either arbitrary files or images (using the s
 # Network structure
 Each layer contains a predefined number of neurons, with each layer also containing one extra bias neuron. While not necessary, the output layer also contains a bias neuron to generalize the algorithms used. Neurons in the hidden layers use the ReLU activation function, while neurons in the output layer use a sigmoid function.
 
-### Network topologies for the examples (bias is ignored):
-* XOR: 2, 4, 1
-* Image recognition: 784, 100, 10
-
 # How the GPU is utilized
 To keep the program simple when utilizing shared memory on the GPU, a maximum of 1024 neurons in a single layer is allowed. Anything beyond that will automatically force the program to only use the CPU.
 
@@ -24,14 +20,19 @@ The gradient of each neuron in the output layer is computed on the CPU, again, t
 Updating the weights also takes place on the GPU, since each weight can be modified independently of eachother.
 
 # Quick benchmarks
+### Test machine:
 * CPU: i7-8700
 * GPU: GTX 1070
 
+### Network topologies for the examples (bias is ignored):
+* XOR: 2, 4, 1
+* Image recognition: 784, 100, 10
+
 | Example  | Number of training sets | Approximate time for CPU | Approximate time for GPU |
-| ------------- | ------------- | ------------- | ------------- |
+|     :---:      |     :---:      |     :---:      |     :---:      |
 | XOR  | 2000  | 4.98 sec  | 5.10 sec  |
 | Image recognition  | 5000  | 32 sec  | 13 sec  |
-| Image recognition  | 60 000  | 6 min 30 sec  | 2 min 34 sec  |
+| Image recognition  | 60 000  | 6 min 30 sec  | 2 min 36 sec  |
 
 # Example Usage
 An example application using a neural network exported by SkyNeuralNet can be found here:
