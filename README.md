@@ -35,5 +35,5 @@ Updating the weights also takes place on the GPU, since each weight can be modif
 | Image recognition  | 60 000  | 6 min 30 sec  | 2 min 36 sec  |
 
 # Example Usage
-An example application using a neural network exported by SkyNeuralNet can be found here:
+An example application using a neural network created by SkyNeuralNet can be found here:
 [https://github.com/SiTronXD/SkyNeuralNetUsageExample](https://github.com/SiTronXD/SkyNeuralNetUsageExample)
