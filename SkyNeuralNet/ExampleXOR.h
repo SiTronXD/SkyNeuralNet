@@ -5,8 +5,6 @@
 #include "NeuralNetwork/NeuralNet.h"
 #include "Trainer.h"
 
-// Takes about 100-200 ms more when using the GPU compared to the CPU.
-// Larger networks is more suitable for the GPU.
 void startExampleXOR()
 {
 	// XOR neural network
