@@ -25,7 +25,7 @@ Updating the weights also takes place on the GPU, since each weight can be modif
 * GPU: GTX 1070
 
 ### Network topologies for the examples (bias is ignored):
-* XOR: 2, 4, 1
+* Learning XOR: 2, 4, 1
 * Image recognition: 784, 100, 10
 
 | Example  | Number of training sets | Approximate time for CPU | Approximate time for GPU |
